@@ -224,17 +224,51 @@
     });
   }
 
-  async function gasPost(body) {
-    body.token = getToken();
-    var res = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-      body: JSON.stringify(body),
+  // --- POST via hidden iframe + form submit ---
+  var uploadIframe = document.createElement('iframe');
+  uploadIframe.name = 'uploadFrame';
+  uploadIframe.style.display = 'none';
+  document.body.appendChild(uploadIframe);
+
+  function gasPost(fields) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        window.removeEventListener('message', onMsg);
+        reject(new Error('アップロードがタイムアウトしました'));
+      }, 120000); // 2分タイムアウト
+
+      function onMsg(e) {
+        if (done) return;
+        if (typeof e.data !== 'object') return;
+        done = true;
+        clearTimeout(timer);
+        window.removeEventListener('message', onMsg);
+        resolve(e.data);
+      }
+      window.addEventListener('message', onMsg);
+
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = GAS_URL;
+      form.target = 'uploadFrame';
+      form.style.display = 'none';
+
+      fields.token = getToken();
+      for (var key in fields) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = fields[key];
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
     });
-    if (!res.ok) {
-      throw new Error('GAS request failed: ' + res.status);
-    }
-    return res.json();
   }
 
   // --- フォルダツリー ---

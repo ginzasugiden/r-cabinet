@@ -33,21 +33,35 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    var body = JSON.parse(e.postData.contents);
-    var action = body.action;
+    // form submit から受け取る（e.parameter にフィールドが入る）
+    var params = e.parameter || {};
+    var action = params.action;
 
     if (action === 'uploadFile') {
-      var auth = authenticate(body.token);
-      if (auth.error) return jsonResponse(auth);
-      body.shopId = auth.shopId;
-      var result2 = uploadFile(body);
-      return jsonResponse(result2);
+      var auth = authenticate(params.token);
+      if (auth.error) return htmlPostMessage(auth);
+      var body = {
+        shopId: auth.shopId,
+        folderId: params.folderId,
+        fileName: params.fileName,
+        fileData: params.fileData,
+        mimeType: params.mimeType,
+        originalFileName: params.originalFileName
+      };
+      var result = uploadFile(body);
+      return htmlPostMessage(result);
     } else {
-      return jsonResponse({ error: 'Unknown action: ' + action });
+      return htmlPostMessage({ error: 'Unknown action: ' + action });
     }
   } catch (err) {
-    return jsonResponse({ error: String(err) });
+    return htmlPostMessage({ error: String(err) });
   }
+}
+
+function htmlPostMessage(data) {
+  var jsonStr = JSON.stringify(data);
+  var html = '<html><body><script>window.parent.postMessage(' + jsonStr + ', "*");<\/script></body></html>';
+  return HtmlService.createHtmlOutput(html);
 }
 
 /**
