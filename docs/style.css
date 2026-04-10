@@ -152,7 +152,7 @@ button:disabled {
 .folder-item {
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 8px;
   cursor: pointer;
   font-size: 0.9rem;
   border-left: 3px solid transparent;
@@ -169,8 +169,18 @@ button:disabled {
   font-weight: bold;
 }
 
+.folder-toggle {
+  width: 16px;
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  color: #999;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
 .folder-item .folder-icon {
-  margin-right: 6px;
+  margin-right: 4px;
   flex-shrink: 0;
 }
 
@@ -178,6 +188,39 @@ button:disabled {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.folder-children {
+  display: none;
+}
+
+.folder-children.open {
+  display: block;
+}
+
+/* スピナー */
+.spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  color: #999;
+  font-size: 0.9rem;
+  gap: 12px;
+}
+
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 4px solid #eee;
+  border-top-color: #bf0000;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* メインコンテンツ */
