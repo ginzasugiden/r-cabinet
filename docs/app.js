@@ -60,16 +60,23 @@
         url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(v);
       }
     }
-    const res = await fetch(url);
+    const res = await fetch(url, { redirect: 'follow' });
+    if (!res.ok) {
+      throw new Error('GAS request failed: ' + res.status);
+    }
     return res.json();
   }
 
   async function gasPost(body) {
     const res = await fetch(getGasUrl(), {
       method: 'POST',
+      redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(body),
     });
+    if (!res.ok) {
+      throw new Error('GAS request failed: ' + res.status);
+    }
     return res.json();
   }
 

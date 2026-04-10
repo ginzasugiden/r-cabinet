@@ -3,49 +3,46 @@
  */
 
 function doGet(e) {
-  const action = e.parameter.action;
-
   try {
-    let result;
-    switch (action) {
-      case 'getFolders':
-        result = getFolders();
-        break;
-      case 'getFolderFiles':
-        const folderId = e.parameter.folderId;
-        if (!folderId) {
-          return jsonResponse({ error: 'folderId is required' }, 400);
-        }
-        result = getFolderFiles(folderId);
-        break;
-      default:
-        return jsonResponse({ error: 'Unknown action: ' + action }, 400);
+    var action = (e && e.parameter) ? e.parameter.action : '';
+    var result;
+
+    if (action === 'getFolders') {
+      result = getFolders();
+    } else if (action === 'getFolderFiles') {
+      var folderId = e.parameter.folderId;
+      if (!folderId) {
+        return jsonResponse({ error: 'folderId is required' });
+      }
+      result = getFolderFiles(folderId);
+    } else {
+      return jsonResponse({ error: 'Unknown action: ' + action });
     }
+
     return jsonResponse(result);
   } catch (err) {
-    return jsonResponse({ error: err.message }, 500);
+    return jsonResponse({ error: String(err) });
   }
 }
 
 function doPost(e) {
   try {
-    const body = JSON.parse(e.postData.contents);
-    const action = body.action;
+    var body = JSON.parse(e.postData.contents);
+    var action = body.action;
 
-    switch (action) {
-      case 'uploadFile':
-        const result = uploadFile(body);
-        return jsonResponse(result);
-      default:
-        return jsonResponse({ error: 'Unknown action: ' + action }, 400);
+    if (action === 'uploadFile') {
+      var result = uploadFile(body);
+      return jsonResponse(result);
+    } else {
+      return jsonResponse({ error: 'Unknown action: ' + action });
     }
   } catch (err) {
-    return jsonResponse({ error: err.message }, 500);
+    return jsonResponse({ error: String(err) });
   }
 }
 
-function jsonResponse(data, status) {
-  const output = ContentService.createTextOutput(JSON.stringify(data));
-  output.setMimeType(ContentService.MimeType.JSON);
-  return output;
+function jsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }
