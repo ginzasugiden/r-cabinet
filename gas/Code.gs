@@ -87,8 +87,10 @@ function jsonResponse(data, e) {
   var jsonStr = JSON.stringify(data);
   var callback = (e && e.parameter) ? e.parameter.callback : null;
   if (callback) {
+    // JSON文字列をエスケープして安全にJSに埋め込む
+    var escaped = jsonStr.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
     return ContentService
-      .createTextOutput(callback + '(' + jsonStr + ')')
+      .createTextOutput(callback + "(JSON.parse('" + escaped + "'))")
       .setMimeType(ContentService.MimeType.JAVASCRIPT);
   }
   return ContentService
