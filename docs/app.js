@@ -4,8 +4,9 @@
 (function () {
   'use strict';
 
+  var GAS_URL = 'https://script.google.com/macros/s/AKfycbybJILkHtunm_Ky7OJkPezVg_fOZp70uK495cxiMOKv0iacnJU4HrEB9ZIKRzzQBbCHIQ/exec';
+
   // --- DOM要素 ---
-  var gasUrlInput = document.getElementById('gasUrl');
   var loginScreen = document.getElementById('loginScreen');
   var loginShopIdInput = document.getElementById('loginShopId');
   var loginPasswordInput = document.getElementById('loginPassword');
@@ -83,25 +84,15 @@
     sessionStorage.setItem('treeState', JSON.stringify(state));
   }
 
-  // --- GAS URL管理 ---
-  function getGasUrl() {
-    return localStorage.getItem('gasUrl') || '';
-  }
-
   function getToken() {
     return sessionStorage.getItem('token') || '';
   }
 
   // --- 初期化 ---
-  async function init() {
-    var savedUrl = getGasUrl();
-    if (savedUrl) {
-      gasUrlInput.value = savedUrl;
-    }
-
+  function init() {
     var token = getToken();
     var shopName = sessionStorage.getItem('shopName') || '';
-    if (token && savedUrl) {
+    if (token) {
       showMainScreen(shopName);
     } else {
       showLoginScreen();
@@ -130,14 +121,6 @@
   });
 
   async function doLogin() {
-    var gasUrl = gasUrlInput.value.trim();
-    if (!gasUrl) {
-      loginError.textContent = 'GAS URLを入力してください';
-      loginError.style.display = 'block';
-      return;
-    }
-    localStorage.setItem('gasUrl', gasUrl);
-
     var shopId = loginShopIdInput.value.trim();
     var password = loginPasswordInput.value;
     if (!shopId || !password) {
@@ -208,7 +191,7 @@
           qs += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
         }
       }
-      var url = getGasUrl() + '?' + qs;
+      var url = GAS_URL + '?' + qs;
 
       var timer = setTimeout(function () {
         if (done) return;
@@ -243,7 +226,7 @@
 
   async function gasPost(body) {
     body.token = getToken();
-    var res = await fetch(getGasUrl(), {
+    var res = await fetch(GAS_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(body),
