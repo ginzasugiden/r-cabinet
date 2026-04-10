@@ -7,14 +7,24 @@ function doGet(e) {
     var action = (e && e.parameter) ? e.parameter.action : '';
     var result;
 
-    if (action === 'getFolders') {
-      result = getFolders();
+    if (action === 'getShops') {
+      result = getShops();
+    } else if (action === 'getFolders') {
+      var shopId = e.parameter.shopId;
+      if (!shopId) {
+        return jsonResponse({ error: 'shopId is required' }, e);
+      }
+      result = getFolders(shopId);
     } else if (action === 'getFolderFiles') {
+      var shopId2 = e.parameter.shopId;
       var folderId = e.parameter.folderId;
+      if (!shopId2) {
+        return jsonResponse({ error: 'shopId is required' }, e);
+      }
       if (!folderId) {
         return jsonResponse({ error: 'folderId is required' }, e);
       }
-      result = getFolderFiles(folderId);
+      result = getFolderFiles(shopId2, folderId);
     } else {
       return jsonResponse({ error: 'Unknown action: ' + action }, e);
     }

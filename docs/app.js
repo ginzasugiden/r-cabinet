@@ -7,6 +7,7 @@
   // --- DOM要素 ---
   const gasUrlInput = document.getElementById('gasUrl');
   const saveUrlBtn = document.getElementById('saveUrl');
+  const shopSelect = document.getElementById('shopSelect');
   const folderSelect = document.getElementById('folderSelect');
   const refreshFoldersBtn = document.getElementById('refreshFolders');
   const dropZone = document.getElementById('dropZone');
@@ -30,12 +31,16 @@
     return localStorage.getItem('gasUrl') || '';
   }
 
+  function getSelectedShopId() {
+    return shopSelect.value;
+  }
+
   function init() {
-    const saved = getGasUrl();
-    if (saved) {
-      gasUrlInput.value = saved;
-      enableControls();
-      loadFolders();
+    const savedUrl = getGasUrl();
+    const savedShop = localStorage.getItem('shopId') || '';
+    if (savedUrl) {
+      gasUrlInput.value = savedUrl;
+      loadShops(savedShop);
     }
   }
 
@@ -43,13 +48,53 @@
     const url = gasUrlInput.value.trim();
     if (!url) return;
     localStorage.setItem('gasUrl', url);
-    enableControls();
-    loadFolders();
+    loadShops();
   });
 
-  function enableControls() {
-    folderSelect.disabled = false;
-    refreshFoldersBtn.disabled = false;
+  // --- ショップ一覧 ---
+  async function loadShops(restoreShopId) {
+    shopSelect.disabled = true;
+    shopSelect.innerHTML = '<option value="">読み込み中...</option>';
+    folderSelect.disabled = true;
+    refreshFoldersBtn.disabled = true;
+    try {
+      const data = await gasGet('getShops');
+      shopSelect.innerHTML = '<option value="">-- ショップを選択 --</option>';
+      if (data.shops) {
+        data.shops.forEach(function (s) {
+          const opt = document.createElement('option');
+          opt.value = s.shopId;
+          opt.textContent = s.shopName;
+          shopSelect.appendChild(opt);
+        });
+      }
+      shopSelect.disabled = false;
+      if (restoreShopId) {
+        shopSelect.value = restoreShopId;
+        if (shopSelect.value === restoreShopId) {
+          onShopChange();
+        }
+      }
+    } catch (e) {
+      shopSelect.innerHTML = '<option value="">取得失敗</option>';
+    }
+  }
+
+  shopSelect.addEventListener('change', onShopChange);
+
+  function onShopChange() {
+    const shopId = getSelectedShopId();
+    localStorage.setItem('shopId', shopId);
+    if (shopId) {
+      folderSelect.disabled = false;
+      refreshFoldersBtn.disabled = false;
+      loadFolders();
+    } else {
+      folderSelect.disabled = true;
+      refreshFoldersBtn.disabled = true;
+      folderSelect.innerHTML = '<option value="">-- フォルダを選択 --</option>';
+      existingSection.hidden = true;
+    }
   }
 
   // --- API呼び出し (JSONP for GET, fetch for POST) ---
@@ -97,7 +142,7 @@
   async function loadFolders() {
     folderSelect.innerHTML = '<option value="">読み込み中...</option>';
     try {
-      const data = await gasGet('getFolders');
+      const data = await gasGet('getFolders', { shopId: getSelectedShopId() });
       folderSelect.innerHTML = '<option value="">-- フォルダを選択 --</option>';
       if (data.folders) {
         data.folders.forEach(function (f) {
@@ -128,7 +173,7 @@
     existingSection.hidden = false;
     existingFiles.innerHTML = '<p style="color:#999">読み込み中...</p>';
     try {
-      const data = await gasGet('getFolderFiles', { folderId: folderId });
+      const data = await gasGet('getFolderFiles', { shopId: getSelectedShopId(), folderId: folderId });
       existingFiles.innerHTML = '';
       if (data.files && data.files.length > 0) {
         data.files.forEach(function (f) {
@@ -310,6 +355,7 @@
         const base64 = await fileToBase64(item.file);
         const result = await gasPost({
           action: 'uploadFile',
+          shopId: getSelectedShopId(),
           folderId: parseInt(folderId),
           fileName: item.displayName,
           fileData: base64,

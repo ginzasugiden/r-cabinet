@@ -6,64 +6,84 @@ const CABINET_API_BASE = 'https://api.rms.rakuten.co.jp/es/1.0/cabinet';
 
 const SPREADSHEET_ID = '1iYeV2SbOVoRH8Qjm2d1w5tWmhlE_zcc-yO1tDSLN7Rk';
 const SHEET_NAME = 'api_key';
-const TARGET_ID = 'tokyoflower';
+
+/**
+ * スプレッドシートからショップ一覧を取得（A列:id, H列:sname）
+ */
+function getShops() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+  const shops = [];
+  for (var i = 1; i < data.length; i++) {
+    var id = String(data[i][0]).trim();
+    var sname = String(data[i][7]).trim();
+    if (id) {
+      shops.push({ shopId: id, shopName: sname || id });
+    }
+  }
+  return { shops: shops };
+}
 
 /**
  * スプレッドシートからAPIキーを取得しデコード
  */
-function getApiKeys() {
+function getApiKeys(shopId) {
+  if (!shopId) {
+    throw new Error('shopId is required');
+  }
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const sheet = ss.getSheetByName(SHEET_NAME);
   const data = sheet.getDataRange().getValues();
 
-  for (let i = 0; i < data.length; i++) {
-    if (data[i][0] === TARGET_ID) {
-      const licenseKeyRaw = String(data[i][2]).replace(/^BASE64:/, '');
-      const serviceSecretRaw = String(data[i][3]).replace(/^BASE64:/, '');
-      const licenseKey = Utilities.newBlob(Utilities.base64Decode(licenseKeyRaw)).getDataAsString();
-      const serviceSecret = Utilities.newBlob(Utilities.base64Decode(serviceSecretRaw)).getDataAsString();
-      return { serviceSecret, licenseKey };
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]).trim() === shopId) {
+      var licenseKeyRaw = String(data[i][2]).replace(/^BASE64:/, '');
+      var serviceSecretRaw = String(data[i][3]).replace(/^BASE64:/, '');
+      var licenseKey = Utilities.newBlob(Utilities.base64Decode(licenseKeyRaw)).getDataAsString();
+      var serviceSecret = Utilities.newBlob(Utilities.base64Decode(serviceSecretRaw)).getDataAsString();
+      return { serviceSecret: serviceSecret, licenseKey: licenseKey };
     }
   }
-  throw new Error('API key row not found for id: ' + TARGET_ID);
+  throw new Error('API key row not found for shopId: ' + shopId);
 }
 
 /**
  * 認証ヘッダーを生成
  */
-function getAuthHeader() {
-  const { serviceSecret, licenseKey } = getApiKeys();
-  const encoded = Utilities.base64Encode(serviceSecret + ':' + licenseKey);
+function getAuthHeader(shopId) {
+  var keys = getApiKeys(shopId);
+  var encoded = Utilities.base64Encode(keys.serviceSecret + ':' + keys.licenseKey);
   return 'ESA ' + encoded;
 }
 
 /**
  * フォルダ一覧取得
  */
-function getFolders() {
-  const url = CABINET_API_BASE + '/folders/get';
-  const response = UrlFetchApp.fetch(url, {
+function getFolders(shopId) {
+  var url = CABINET_API_BASE + '/folders/get';
+  var response = UrlFetchApp.fetch(url, {
     method: 'get',
-    headers: { 'Authorization': getAuthHeader() },
+    headers: { 'Authorization': getAuthHeader(shopId) },
     muteHttpExceptions: true
   });
 
-  const xml = response.getContentText();
+  var xml = response.getContentText();
   return parseFoldersXml(xml);
 }
 
 /**
  * フォルダ内画像一覧取得
  */
-function getFolderFiles(folderId) {
-  const url = CABINET_API_BASE + '/folder/files/get?folderId=' + folderId;
-  const response = UrlFetchApp.fetch(url, {
+function getFolderFiles(shopId, folderId) {
+  var url = CABINET_API_BASE + '/folder/files/get?folderId=' + folderId;
+  var response = UrlFetchApp.fetch(url, {
     method: 'get',
-    headers: { 'Authorization': getAuthHeader() },
+    headers: { 'Authorization': getAuthHeader(shopId) },
     muteHttpExceptions: true
   });
 
-  const xml = response.getContentText();
+  var xml = response.getContentText();
   return parseFolderFilesXml(xml);
 }
 
@@ -71,8 +91,13 @@ function getFolderFiles(folderId) {
  * 画像アップロード
  */
 function uploadFile(params) {
-  const { folderId, fileName, fileData, mimeType, originalFileName } = params;
-  const url = CABINET_API_BASE + '/file/insert';
+  var shopId = params.shopId;
+  var folderId = params.folderId;
+  var fileName = params.fileName;
+  var fileData = params.fileData;
+  var mimeType = params.mimeType;
+  var originalFileName = params.originalFileName;
+  var url = CABINET_API_BASE + '/file/insert';
 
   const xmlBody = '<request><fileInsertRequest><file>'
     + '<fileName>' + escapeXml(fileName) + '</fileName>'
@@ -85,7 +110,7 @@ function uploadFile(params) {
 
   const response = UrlFetchApp.fetch(url, {
     method: 'post',
-    headers: { 'Authorization': getAuthHeader() },
+    headers: { 'Authorization': getAuthHeader(shopId) },
     contentType: 'multipart/form-data; boundary=' + boundary,
     payload: payload,
     muteHttpExceptions: true
