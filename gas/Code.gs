@@ -7,7 +7,9 @@ function doGet(e) {
     var action = (e && e.parameter) ? e.parameter.action : '';
     var result;
 
-    if (action === 'getFolders') {
+    if (action === 'login') {
+      result = login(e.parameter.shopId, e.parameter.password);
+    } else if (action === 'getFolders') {
       var auth = authenticate(e.parameter.token);
       if (auth.error) return jsonResponse(auth, e);
       result = getFolders(auth.shopId);
@@ -34,10 +36,7 @@ function doPost(e) {
     var body = JSON.parse(e.postData.contents);
     var action = body.action;
 
-    if (action === 'login') {
-      var result = login(body.shopId, body.password);
-      return jsonResponse(result);
-    } else if (action === 'uploadFile') {
+    if (action === 'uploadFile') {
       var auth = authenticate(body.token);
       if (auth.error) return jsonResponse(auth);
       body.shopId = auth.shopId;

@@ -116,8 +116,7 @@
     loginError.style.display = 'none';
 
     try {
-      var result = await gasPost({
-        action: 'login',
+      var result = await gasGet('login', {
         shopId: shopId,
         password: password
       });
