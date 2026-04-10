@@ -86,12 +86,20 @@ function getFolders(shopId) {
     var page = parseFoldersPage(xml);
 
     if (page.error) return page;
-    if (folderAllCount === null) folderAllCount = page.folderAllCount;
+    if (folderAllCount === null) {
+      folderAllCount = page.folderAllCount;
+      Logger.log("folderAllCount: " + folderAllCount);
+    }
 
     allFolders = allFolders.concat(page.folders);
     if (allFolders.length >= folderAllCount) break;
     offset++;
   }
+
+  Logger.log("取得フォルダ数: " + allFolders.length);
+  allFolders.forEach(function(f) {
+    Logger.log("FolderId: " + f.folderId + ", FolderName: " + f.folderName + ", FolderNode: " + f.folderNode);
+  });
 
   return {
     status: 'ok',
@@ -211,11 +219,18 @@ function parseFoldersPage(xml) {
   if (foldersNode) {
     var folderNodes = foldersNode.getChildren('folder');
     folderNodes.forEach(function(node) {
+      var folderPath = node.getChildText('FolderPath') || '';
+      var folderNodeRaw = node.getChildText('FolderNode');
+      var folderNodeVal = folderNodeRaw ? parseInt(folderNodeRaw) : null;
+      // FolderNodeが取得できない場合、FolderPathの"/"の数から判定
+      if (!folderNodeVal || isNaN(folderNodeVal)) {
+        folderNodeVal = (folderPath.match(/\//g) || []).length + 1;
+      }
       folders.push({
         folderId: parseInt(node.getChildText('FolderId')),
         folderName: node.getChildText('FolderName'),
-        folderPath: node.getChildText('FolderPath') || '',
-        folderNode: parseInt(node.getChildText('FolderNode') || '1')
+        folderPath: folderPath,
+        folderNode: folderNodeVal
       });
     });
   }

@@ -65,10 +65,12 @@
   // --- フラットリストからツリー構造を構築（FolderNodeベース） ---
   function buildFolderTree(flatList) {
     // デバッグ: フォルダ一覧をコンソールに出力
-    console.log('=== フォルダ一覧 ===');
-    flatList.forEach(function (f) {
-      console.log('FolderId:', f.folderId, 'FolderName:', f.folderName, 'FolderNode:', f.folderNode);
-    });
+    console.log('=== フォルダ一覧 (' + flatList.length + '件) ===');
+    console.log("全フォルダ:\n" + flatList.map(function (f) {
+      var indent = '';
+      for (var i = 1; i < (f.folderNode || 1); i++) indent += '  ';
+      return (f.folderNode || 1) + ' ' + indent + f.folderName + ' (ID:' + f.folderId + ')';
+    }).join('\n'));
 
     var roots = [];
     var lastNode1 = null;
