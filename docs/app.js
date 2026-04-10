@@ -71,28 +71,33 @@
     });
 
     var roots = [];
-    // 各階層の直近の親を保持するスタック（index = folderNode - 1）
-    var stack = [];
+    var lastNode1 = null;
+    var lastNode2 = null;
 
     flatList.forEach(function (f) {
       var node = { folderId: f.folderId, folderName: f.folderName, folderPath: f.folderPath, children: [] };
-      var level = (f.folderNode || 1) - 1; // 0-based
+      var folderNode = f.folderNode || 1;
 
-      // スタックを現在の階層まで切り詰め
-      stack.length = level;
-
-      if (level === 0) {
+      if (folderNode === 1) {
         roots.push(node);
-      } else {
-        var parent = stack[level - 1];
-        if (parent) {
-          parent.children.push(node);
+        lastNode1 = node;
+        lastNode2 = null;
+      } else if (folderNode === 2) {
+        if (lastNode1) {
+          lastNode1.children.push(node);
+        } else {
+          roots.push(node);
+        }
+        lastNode2 = node;
+      } else if (folderNode === 3) {
+        if (lastNode2) {
+          lastNode2.children.push(node);
+        } else if (lastNode1) {
+          lastNode1.children.push(node);
         } else {
           roots.push(node);
         }
       }
-
-      stack[level] = node;
     });
     return roots;
   }
