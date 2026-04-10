@@ -76,11 +76,10 @@
     var token = getToken();
     var shopName = sessionStorage.getItem('shopName') || '';
     if (token && savedUrl) {
-      // トークンの有効性を確認
+      // トークンの有効性を確認（両画面非表示で検証）
       loginScreen.hidden = true;
-      mainScreen.hidden = false;
+      mainScreen.hidden = true;
       shopNameDisplay.textContent = shopName;
-      showSpinner(folderTree, 'セッション確認中...');
       try {
         var data = await gasGet('getFolders', null, 10000);
         if (data && data.authRequired) {
@@ -89,7 +88,8 @@
           showLoginScreen();
           return;
         }
-        // トークン有効 → フォルダ表示
+        // トークン有効 → メイン画面表示
+        mainScreen.hidden = false;
         folderTree.innerHTML = '';
         if (data.folders && data.folders.length > 0) {
           renderTreeNodes(data.folders, folderTree, 0);
@@ -111,7 +111,7 @@
     loginScreen.hidden = false;
     mainScreen.hidden = true;
     loginError.style.display = 'none';
-    loginSpinner.hidden = true;
+    loginSpinner.style.display = 'none';
     if (!getGasUrl()) {
       gasUrlSection.hidden = false;
     }
@@ -161,7 +161,7 @@
 
     loginBtn.disabled = true;
     loginError.style.display = 'none';
-    loginSpinner.hidden = false;
+    loginSpinner.style.display = '';
 
     try {
       var result = await gasGet('login', {
@@ -183,7 +183,7 @@
       loginError.style.display = 'block';
     }
     loginBtn.disabled = false;
-    loginSpinner.hidden = true;
+    loginSpinner.style.display = 'none';
   }
 
   // --- ログアウト ---
