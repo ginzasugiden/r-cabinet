@@ -224,30 +224,50 @@
     });
   }
 
-  // --- POST via no-cors + polling ---
-  async function gasPost(fields) {
-    var uploadId = crypto.randomUUID();
-    fields.token = getToken();
-    fields.uploadId = uploadId;
+  // --- POST via popup window ---
+  function gasPost(fields) {
+    return new Promise(function (resolve, reject) {
+      var done = false;
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        window.removeEventListener('message', onMsg);
+        if (popup && !popup.closed) popup.close();
+        reject(new Error('アップロードがタイムアウトしました'));
+      }, 120000);
 
-    // 1. no-cors POST（レスポンスは読めないがリクエストは届く）
-    await fetch(GAS_URL, {
-      method: 'POST',
-      mode: 'no-cors',
-      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-      body: JSON.stringify(fields)
-    });
-
-    // 2. ポーリングで結果を取得（2秒間隔、最大10回）
-    await sleep(2000);
-    for (var i = 0; i < 10; i++) {
-      var result = await gasGet('getUploadResult', { uploadId: uploadId });
-      if (!result.pending) {
-        return result;
+      function onMsg(e) {
+        if (done) return;
+        if (typeof e.data !== 'object') return;
+        done = true;
+        clearTimeout(timer);
+        window.removeEventListener('message', onMsg);
+        if (popup && !popup.closed) popup.close();
+        resolve(e.data);
       }
-      await sleep(2000);
-    }
-    throw new Error('アップロード結果の取得がタイムアウトしました');
+      window.addEventListener('message', onMsg);
+
+      var popup = window.open('', 'uploadPopup', 'width=1,height=1');
+
+      var form = document.createElement('form');
+      form.method = 'POST';
+      form.action = GAS_URL;
+      form.target = 'uploadPopup';
+      form.style.display = 'none';
+
+      fields.token = getToken();
+      for (var key in fields) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = key;
+        input.value = fields[key];
+        form.appendChild(input);
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+      document.body.removeChild(form);
+    });
   }
 
   // --- フォルダツリー ---
