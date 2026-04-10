@@ -62,45 +62,44 @@
       + (message || '読み込み中...') + '</span></div>';
   }
 
-  // --- フラットリストからツリー構造を構築（FolderNodeベース） ---
+  // --- フラットリストからツリー構造を構築（FolderPathベース） ---
   function buildFolderTree(flatList) {
     // デバッグ: フォルダ一覧をコンソールに出力
     console.log('=== フォルダ一覧 (' + flatList.length + '件) ===');
     console.log("全フォルダ:\n" + flatList.map(function (f) {
+      var depth = (f.folderPath || '').split('/').length;
       var indent = '';
-      for (var i = 1; i < (f.folderNode || 1); i++) indent += '  ';
-      return (f.folderNode || 1) + ' ' + indent + f.folderName + ' (ID:' + f.folderId + ')';
+      for (var i = 1; i < depth; i++) indent += '  ';
+      return depth + ' ' + indent + f.folderName + ' (ID:' + f.folderId + ', Path:' + f.folderPath + ')';
     }).join('\n'));
 
+    // FolderPathでマップを作る
+    var pathMap = {};
+    flatList.forEach(function (f) {
+      pathMap[f.folderPath] = { folderId: f.folderId, folderName: f.folderName, folderPath: f.folderPath, children: [] };
+    });
+
     var roots = [];
-    var lastNode1 = null;
-    var lastNode2 = null;
 
     flatList.forEach(function (f) {
-      var node = { folderId: f.folderId, folderName: f.folderName, folderPath: f.folderPath, children: [] };
-      var folderNode = f.folderNode || 1;
+      var node = pathMap[f.folderPath];
+      var parts = (f.folderPath || '').split('/');
 
-      if (folderNode === 1) {
+      if (parts.length === 1) {
+        // ルートフォルダ
         roots.push(node);
-        lastNode1 = node;
-        lastNode2 = null;
-      } else if (folderNode === 2) {
-        if (lastNode1) {
-          lastNode1.children.push(node);
+      } else {
+        // 親のパスを求める
+        var parentPath = parts.slice(0, -1).join('/');
+        if (pathMap[parentPath]) {
+          pathMap[parentPath].children.push(node);
         } else {
-          roots.push(node);
-        }
-        lastNode2 = node;
-      } else if (folderNode === 3) {
-        if (lastNode2) {
-          lastNode2.children.push(node);
-        } else if (lastNode1) {
-          lastNode1.children.push(node);
-        } else {
+          // 親が見つからない場合はルートに追加
           roots.push(node);
         }
       }
     });
+
     return roots;
   }
 
