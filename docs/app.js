@@ -54,14 +54,13 @@
 
   // --- API呼び出し ---
   async function gasGet(action, params) {
-    const url = new URL(getGasUrl());
-    url.searchParams.set('action', action);
+    let url = getGasUrl() + '?action=' + encodeURIComponent(action);
     if (params) {
       for (const [k, v] of Object.entries(params)) {
-        url.searchParams.set(k, v);
+        url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(v);
       }
     }
-    const res = await fetch(url.toString());
+    const res = await fetch(url);
     return res.json();
   }
 
