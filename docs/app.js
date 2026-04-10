@@ -62,31 +62,37 @@
       + (message || '読み込み中...') + '</span></div>';
   }
 
-  // --- フラットリストからツリー構造を構築 ---
+  // --- フラットリストからツリー構造を構築（FolderNodeベース） ---
   function buildFolderTree(flatList) {
-    flatList.sort(function (a, b) {
-      return (a.folderPath || '').split(/[\\\/]/).length - (b.folderPath || '').split(/[\\\/]/).length;
-    });
-    var pathMap = {};
+    // デバッグ: フォルダ一覧をコンソールに出力
+    console.log('=== フォルダ一覧 ===');
     flatList.forEach(function (f) {
-      if (f.folderPath) {
-        pathMap[f.folderPath.replace(/\\/g, '/')] = f.folderId;
-      }
+      console.log('FolderId:', f.folderId, 'FolderName:', f.folderName, 'FolderNode:', f.folderNode);
     });
-    var nodeMap = {};
+
     var roots = [];
+    // 各階層の直近の親を保持するスタック（index = folderNode - 1）
+    var stack = [];
+
     flatList.forEach(function (f) {
       var node = { folderId: f.folderId, folderName: f.folderName, folderPath: f.folderPath, children: [] };
-      nodeMap[f.folderId] = node;
-      var np = (f.folderPath || '').replace(/\\/g, '/');
-      var lastSlash = np.lastIndexOf('/');
-      var parentPath = lastSlash > 0 ? np.substring(0, lastSlash) : '';
-      var parentId = parentPath ? pathMap[parentPath] : null;
-      if (parentId && nodeMap[parentId]) {
-        nodeMap[parentId].children.push(node);
-      } else {
+      var level = (f.folderNode || 1) - 1; // 0-based
+
+      // スタックを現在の階層まで切り詰め
+      stack.length = level;
+
+      if (level === 0) {
         roots.push(node);
+      } else {
+        var parent = stack[level - 1];
+        if (parent) {
+          parent.children.push(node);
+        } else {
+          roots.push(node);
+        }
       }
+
+      stack[level] = node;
     });
     return roots;
   }

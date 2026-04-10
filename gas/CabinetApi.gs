@@ -70,15 +70,35 @@ function getAuthHeader(shopId) {
  * フォルダ一覧取得（1ページ目のみ・最大100件）
  */
 function getFolders(shopId) {
-  var url = CABINET_API_BASE + '/folders/get?offset=1&limit=100';
-  var response = UrlFetchApp.fetch(url, {
-    method: 'get',
-    headers: { 'Authorization': getAuthHeader(shopId) },
-    muteHttpExceptions: true
-  });
+  var allFolders = [];
+  var offset = 1;
+  var folderAllCount = null;
 
-  var xml = response.getContentText();
-  return parseFoldersPage(xml);
+  while (true) {
+    var url = CABINET_API_BASE + '/folders/get?offset=' + offset + '&limit=100';
+    var response = UrlFetchApp.fetch(url, {
+      method: 'get',
+      headers: { 'Authorization': getAuthHeader(shopId) },
+      muteHttpExceptions: true
+    });
+
+    var xml = response.getContentText();
+    var page = parseFoldersPage(xml);
+
+    if (page.error) return page;
+    if (folderAllCount === null) folderAllCount = page.folderAllCount;
+
+    allFolders = allFolders.concat(page.folders);
+    if (allFolders.length >= folderAllCount) break;
+    offset++;
+  }
+
+  return {
+    status: 'ok',
+    resultCode: 'N000',
+    folderAllCount: folderAllCount,
+    folders: allFolders
+  };
 }
 
 /**
@@ -194,7 +214,8 @@ function parseFoldersPage(xml) {
       folders.push({
         folderId: parseInt(node.getChildText('FolderId')),
         folderName: node.getChildText('FolderName'),
-        folderPath: node.getChildText('FolderPath') || ''
+        folderPath: node.getChildText('FolderPath') || '',
+        folderNode: parseInt(node.getChildText('FolderNode') || '1')
       });
     });
   }
