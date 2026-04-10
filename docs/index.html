@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>R-Cabinet アップローダー</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>R-Cabinet アップローダー</h1>
+
+    <!-- GAS URL設定 -->
+    <section class="section">
+      <label for="gasUrl">GAS Web App URL:</label>
+      <div class="input-row">
+        <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec">
+        <button id="saveUrl">保存</button>
+      </div>
+    </section>
+
+    <!-- フォルダ選択 -->
+    <section class="section">
+      <label for="folderSelect">フォルダ:</label>
+      <div class="input-row">
+        <select id="folderSelect" disabled>
+          <option value="">-- フォルダを選択 --</option>
+        </select>
+        <button id="refreshFolders" disabled>更新</button>
+      </div>
+    </section>
+
+    <!-- ドロップゾーン -->
+    <section class="section">
+      <div id="dropZone">
+        <p>ここに画像をドラッグ&ドロップ<br>またはクリックして選択</p>
+        <input type="file" id="fileInput" multiple accept="image/*" hidden>
+      </div>
+    </section>
+
+    <!-- アップロード待ちリスト -->
+    <section class="section" id="queueSection" hidden>
+      <h2>アップロード待ち</h2>
+      <div id="uploadQueue"></div>
+      <button id="startUpload" disabled>アップロード開始</button>
+    </section>
+
+    <!-- 進捗 -->
+    <div id="progress" hidden>
+      <div id="progressBar"><div id="progressFill"></div></div>
+      <span id="progressText"></span>
+    </div>
+
+    <!-- フォルダ内既存画像 -->
+    <section class="section" id="existingSection" hidden>
+      <h2>フォルダ内の既存画像</h2>
+      <div id="existingFiles"></div>
+    </section>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
