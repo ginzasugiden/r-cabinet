@@ -29,6 +29,17 @@
   var existingSection = document.getElementById('existingSection');
   var existingTitle = document.getElementById('existingTitle');
   var existingFiles = document.getElementById('existingFiles');
+  var imageDetail = document.getElementById('imageDetail');
+  var detailPreview = document.getElementById('detailPreview');
+  var detailFileName = document.getElementById('detailFileName');
+  var detailFilePath = document.getElementById('detailFilePath');
+  var detailFileSize = document.getElementById('detailFileSize');
+  var detailDimensions = document.getElementById('detailDimensions');
+  var detailTimeStamp = document.getElementById('detailTimeStamp');
+  var detailFileUrl = document.getElementById('detailFileUrl');
+  var copyUrlBtn = document.getElementById('copyUrlBtn');
+  var detailClose = document.getElementById('detailClose');
+  var toast = document.getElementById('toast');
 
   var MAX_FILE_SIZE = 2 * 1024 * 1024;
   var UPLOAD_INTERVAL = 400;
@@ -385,13 +396,21 @@
       var data = await gasGet('getFolderFiles', { folderId: folderId });
       if (checkAuthRequired(data)) return;
       existingFiles.innerHTML = '';
+      imageDetail.hidden = true;
       if (data.files && data.files.length > 0) {
         data.files.forEach(function (f) {
           var img = document.createElement('img');
-          img.src = f.fileUrl;
-          img.alt = f.fileName;
-          img.title = f.fileName;
+          img.src = f.FileUrl || f.fileUrl || '';
+          img.alt = f.FileName || f.fileName || '';
+          img.title = f.FileName || f.fileName || '';
           img.className = 'existing-thumb';
+          img.addEventListener('click', function () {
+            // 選択ハイライト
+            var thumbs = existingFiles.querySelectorAll('.existing-thumb');
+            for (var i = 0; i < thumbs.length; i++) thumbs[i].classList.remove('selected');
+            img.classList.add('selected');
+            showImageDetail(f);
+          });
           existingFiles.appendChild(img);
         });
       } else {
@@ -400,6 +419,48 @@
     } catch (e) {
       existingFiles.innerHTML = '<p style="color:#e00">取得失敗</p>';
     }
+  }
+
+  // --- 画像詳細表示 ---
+  function showImageDetail(f) {
+    var url = f.FileUrl || f.fileUrl || '';
+    var name = f.FileName || f.fileName || '';
+    var path = f.FilePath || f.filePath || '';
+    var size = parseInt(f.FileSize || f.fileSize || 0);
+    var w = f.Width || f.width || '';
+    var h = f.Height || f.height || '';
+    var ts = f.TimeStamp || f.timeStamp || f.RegisterDate || '';
+
+    detailPreview.src = url;
+    detailFileName.textContent = name;
+    detailFilePath.textContent = path;
+    detailFileSize.textContent = formatSize(size);
+    detailDimensions.textContent = (w && h) ? w + ' x ' + h + ' px' : '-';
+    detailTimeStamp.textContent = ts || '-';
+    detailFileUrl.textContent = url;
+    imageDetail.hidden = false;
+  }
+
+  detailClose.addEventListener('click', function () {
+    imageDetail.hidden = true;
+    var thumbs = existingFiles.querySelectorAll('.existing-thumb');
+    for (var i = 0; i < thumbs.length; i++) thumbs[i].classList.remove('selected');
+  });
+
+  copyUrlBtn.addEventListener('click', function () {
+    var url = detailFileUrl.textContent;
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(function () {
+      showToast('コピーしました');
+    });
+  });
+
+  function showToast(msg) {
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(function () {
+      toast.classList.remove('show');
+    }, 2000);
   }
 
   // --- ドラッグ&ドロップ ---

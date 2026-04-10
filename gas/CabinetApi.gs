@@ -225,12 +225,12 @@ function parseFolderFilesXml(xml) {
   if (filesNode) {
     const fileNodes = filesNode.getChildren('file');
     fileNodes.forEach(function(node) {
-      files.push({
-        fileId: parseInt(node.getChildText('FileId') || '0'),
-        fileName: node.getChildText('FileName'),
-        fileUrl: node.getChildText('FileUrl'),
-        fileSize: parseInt(node.getChildText('FileSize') || '0')
+      var obj = {};
+      var children = node.getChildren();
+      children.forEach(function(child) {
+        obj[child.getName()] = child.getText();
       });
+      files.push(obj);
     });
   }
 

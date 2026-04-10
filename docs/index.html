@@ -74,7 +74,29 @@
           <section class="section" id="existingSection" hidden>
             <h2 id="existingTitle">フォルダ内の既存画像</h2>
             <div id="existingFiles"></div>
+            <!-- 画像詳細パネル -->
+            <div id="imageDetail" hidden>
+              <div class="detail-close" id="detailClose">&times;</div>
+              <img id="detailPreview" class="detail-preview" src="" alt="">
+              <table class="detail-table">
+                <tr><th>画像名</th><td id="detailFileName"></td></tr>
+                <tr><th>ファイルパス</th><td id="detailFilePath"></td></tr>
+                <tr><th>サイズ</th><td id="detailFileSize"></td></tr>
+                <tr><th>解像度</th><td id="detailDimensions"></td></tr>
+                <tr><th>登録/変更日</th><td id="detailTimeStamp"></td></tr>
+                <tr>
+                  <th>画像URL</th>
+                  <td>
+                    <span id="detailFileUrl" class="detail-url"></span>
+                    <button id="copyUrlBtn" class="btn-small" style="margin-left:8px">URLコピー</button>
+                  </td>
+                </tr>
+              </table>
+            </div>
           </section>
+
+          <!-- トースト -->
+          <div id="toast" class="toast"></div>
         </div>
       </div>
     </div>
