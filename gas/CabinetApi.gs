@@ -108,16 +108,14 @@ function getFolders(shopId) {
     }
 
     offset += limit;
-    Utilities.sleep(1500); // レート制限対策（秒間2リクエスト）
+    Utilities.sleep(1000); // レート制限対策
   }
-
-  var tree = buildFolderTree(allFolders);
 
   return {
     status: 'success',
     resultCode: 'N000',
     folderAllCount: totalCount,
-    folders: tree
+    folders: allFolders
   };
 }
 
@@ -244,53 +242,6 @@ function parseFoldersPage(xml) {
     folderAllCount: folderAllCount,
     folders: folders
   };
-}
-
-/**
- * フラットなフォルダリストからツリー構造を構築
- * FolderPath例: "\base", "\base\sub1", "\base\sub1\sub2"
- */
-function buildFolderTree(flatList) {
-  // パスの深さでソート
-  flatList.sort(function(a, b) {
-    return (a.folderPath || '').split(/[\\\/]/).length - (b.folderPath || '').split(/[\\\/]/).length;
-  });
-
-  // pathからfolderIdへのマップ
-  var pathMap = {};
-  flatList.forEach(function(f) {
-    if (f.folderPath) {
-      pathMap[f.folderPath.replace(/\\/g, '/')] = f.folderId;
-    }
-  });
-
-  // folderIdからノードへのマップ
-  var nodeMap = {};
-  var roots = [];
-
-  flatList.forEach(function(f) {
-    var node = {
-      folderId: f.folderId,
-      folderName: f.folderName,
-      folderPath: f.folderPath,
-      children: []
-    };
-    nodeMap[f.folderId] = node;
-
-    // 親パスを算出
-    var normalizedPath = (f.folderPath || '').replace(/\\/g, '/');
-    var lastSlash = normalizedPath.lastIndexOf('/');
-    var parentPath = lastSlash > 0 ? normalizedPath.substring(0, lastSlash) : '';
-
-    var parentId = parentPath ? pathMap[parentPath] : null;
-    if (parentId && nodeMap[parentId]) {
-      nodeMap[parentId].children.push(node);
-    } else {
-      roots.push(node);
-    }
-  });
-
-  return roots;
 }
 
 function parseFolderFilesXml(xml) {

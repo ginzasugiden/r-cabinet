@@ -43,6 +43,35 @@
       + (message || '読み込み中...') + '</span></div>';
   }
 
+  // --- フラットリストからツリー構造を構築 ---
+  function buildFolderTree(flatList) {
+    flatList.sort(function (a, b) {
+      return (a.folderPath || '').split(/[\\\/]/).length - (b.folderPath || '').split(/[\\\/]/).length;
+    });
+    var pathMap = {};
+    flatList.forEach(function (f) {
+      if (f.folderPath) {
+        pathMap[f.folderPath.replace(/\\/g, '/')] = f.folderId;
+      }
+    });
+    var nodeMap = {};
+    var roots = [];
+    flatList.forEach(function (f) {
+      var node = { folderId: f.folderId, folderName: f.folderName, folderPath: f.folderPath, children: [] };
+      nodeMap[f.folderId] = node;
+      var np = (f.folderPath || '').replace(/\\/g, '/');
+      var lastSlash = np.lastIndexOf('/');
+      var parentPath = lastSlash > 0 ? np.substring(0, lastSlash) : '';
+      var parentId = parentPath ? pathMap[parentPath] : null;
+      if (parentId && nodeMap[parentId]) {
+        nodeMap[parentId].children.push(node);
+      } else {
+        roots.push(node);
+      }
+    });
+    return roots;
+  }
+
   // --- ツリー開閉状態の保存/復元 ---
   function getTreeState() {
     try {
@@ -76,31 +105,7 @@
     var token = getToken();
     var shopName = sessionStorage.getItem('shopName') || '';
     if (token && savedUrl) {
-      // トークンの有効性を確認（両画面非表示で検証）
-      loginScreen.hidden = true;
-      mainScreen.hidden = true;
-      shopNameDisplay.textContent = shopName;
-      try {
-        var data = await gasGet('getFolders', null, 10000);
-        if (data && data.authRequired) {
-          sessionStorage.removeItem('token');
-          sessionStorage.removeItem('shopName');
-          showLoginScreen();
-          return;
-        }
-        // トークン有効 → メイン画面表示
-        mainScreen.hidden = false;
-        folderTree.innerHTML = '';
-        if (data.folders && data.folders.length > 0) {
-          renderTreeNodes(data.folders, folderTree, 0);
-        } else {
-          folderTree.innerHTML = '<p class="tree-loading">フォルダなし</p>';
-        }
-      } catch (e) {
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('shopName');
-        showLoginScreen();
-      }
+      showMainScreen(shopName);
     } else {
       showLoginScreen();
     }
@@ -206,7 +211,7 @@
   }
 
   // --- API呼び出し (JSONP for GET, fetch for POST) ---
-  var JSONP_TIMEOUT = 30000; // 30秒
+  var JSONP_TIMEOUT = 60000; // 60秒
 
   function gasGet(action, params, timeout) {
     var ms = timeout || JSONP_TIMEOUT;
@@ -275,7 +280,8 @@
       if (checkAuthRequired(data)) return;
       folderTree.innerHTML = '';
       if (data.folders && data.folders.length > 0) {
-        renderTreeNodes(data.folders, folderTree, 0);
+        var tree = buildFolderTree(data.folders);
+        renderTreeNodes(tree, folderTree, 0);
       } else {
         folderTree.innerHTML = '<p class="tree-loading">フォルダなし</p>';
       }
