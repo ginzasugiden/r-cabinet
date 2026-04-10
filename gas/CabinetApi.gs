@@ -87,6 +87,12 @@ function getFolders(shopId) {
     var xml = response.getContentText();
     var parsed = parseFoldersPage(xml);
 
+    // QPSLimitエラー時はリトライ
+    if (parsed.resultCode && parsed.resultCode.indexOf('QPSLimit') !== -1) {
+      Utilities.sleep(3000);
+      continue;
+    }
+
     if (parsed.error) {
       return parsed;
     }
@@ -102,7 +108,7 @@ function getFolders(shopId) {
     }
 
     offset += limit;
-    Utilities.sleep(600); // レート制限対策（秒間2リクエスト）
+    Utilities.sleep(1500); // レート制限対策（秒間2リクエスト）
   }
 
   var tree = buildFolderTree(allFolders);
