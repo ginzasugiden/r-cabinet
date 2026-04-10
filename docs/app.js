@@ -224,50 +224,51 @@
     });
   }
 
-  // --- POST via popup window ---
-  function gasPost(fields) {
-    return new Promise(function (resolve, reject) {
-      var done = false;
-      var timer = setTimeout(function () {
-        if (done) return;
-        done = true;
-        window.removeEventListener('message', onMsg);
-        if (popup && !popup.closed) popup.close();
-        reject(new Error('アップロードがタイムアウトしました'));
-      }, 120000);
+  // --- POST via popup window + CacheService polling ---
+  async function gasPost(fields) {
+    var uploadId = Date.now() + '_' + Math.random().toString(36).substr(2);
+    fields.token = getToken();
+    fields.uploadId = uploadId;
 
-      function onMsg(e) {
-        if (done) return;
-        if (typeof e.data !== 'object') return;
-        done = true;
-        clearTimeout(timer);
-        window.removeEventListener('message', onMsg);
-        if (popup && !popup.closed) popup.close();
-        resolve(e.data);
+    // ポップアップを開いてフォーム送信
+    var popup = window.open('', 'uploadPopup', 'width=400,height=200');
+
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = GAS_URL;
+    form.target = 'uploadPopup';
+    form.style.display = 'none';
+
+    for (var key in fields) {
+      var input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = fields[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+    document.body.removeChild(form);
+
+    // 3秒待ってからポーリング開始
+    await sleep(3000);
+
+    for (var i = 0; i < 30; i++) {
+      try {
+        var result = await gasGet('getUploadResult', { uploadId: uploadId });
+        if (result.status !== 'pending') {
+          if (popup && !popup.closed) popup.close();
+          return result;
+        }
+      } catch (e) {
+        // ポーリング中のエラーは無視して継続
       }
-      window.addEventListener('message', onMsg);
+      await sleep(2000);
+    }
 
-      var popup = window.open('', 'uploadPopup', 'width=1,height=1');
-
-      var form = document.createElement('form');
-      form.method = 'POST';
-      form.action = GAS_URL;
-      form.target = 'uploadPopup';
-      form.style.display = 'none';
-
-      fields.token = getToken();
-      for (var key in fields) {
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = fields[key];
-        form.appendChild(input);
-      }
-
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
-    });
+    if (popup && !popup.closed) popup.close();
+    throw new Error('アップロード結果の取得がタイムアウトしました');
   }
 
   // --- フォルダツリー ---

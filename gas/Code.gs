@@ -21,6 +21,13 @@ function doGet(e) {
         return jsonResponse({ error: 'folderId is required' }, e);
       }
       result = getFolderFiles(auth2.shopId, folderId);
+    } else if (action === 'getUploadResult') {
+      var uploadId = e.parameter.uploadId;
+      if (!uploadId) {
+        return jsonResponse({ error: 'uploadId is required' }, e);
+      }
+      var cached = CacheService.getScriptCache().get('upload_' + uploadId);
+      result = cached ? JSON.parse(cached) : { status: 'pending' };
     } else {
       return jsonResponse({ error: 'Unknown action: ' + action }, e);
     }
@@ -33,9 +40,11 @@ function doGet(e) {
 
 function doPost(e) {
   var result;
+  var uploadId;
   try {
     var params = e.parameter || {};
     var action = params.action;
+    uploadId = params.uploadId;
 
     if (action === 'uploadFile') {
       var auth = authenticate(params.token);
@@ -59,12 +68,15 @@ function doPost(e) {
     result = { error: String(err) };
   }
 
-  var jsonStr = JSON.stringify(result);
+  // 結果をCacheServiceに保存
+  if (uploadId) {
+    CacheService.getScriptCache().put('upload_' + uploadId, JSON.stringify(result), 300);
+  }
+
   return HtmlService.createHtmlOutput(
-    '<html><body><script>' +
-    'window.opener.postMessage(' + jsonStr + ', "*");' +
-    'window.close();' +
-    '<\/script>結果送信中...</body></html>'
+    '<html><body style="font-family:sans-serif;padding:20px;text-align:center">' +
+    '<p>アップロード完了。このウィンドウを閉じてください。</p>' +
+    '</body></html>'
   );
 }
 
