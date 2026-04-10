@@ -432,7 +432,7 @@
       if (isDefaultSort()) {
         // APIのデフォルト順 → offset/limit でサーバーページング
         var limit = getLimit();
-        var offset = (currentPage - 1) * limit + 1;
+        var offset = currentPage;
         var data = await gasGet('getFolderFiles', {
           folderId: selectedFolderId,
           offset: offset,
@@ -483,7 +483,7 @@
       allFiles = allFiles.concat(data.files || []);
 
       if (allFiles.length >= totalCount) break;
-      offset += 100;
+      offset++;
     }
 
     allFilesCache = allFiles;
