@@ -67,56 +67,18 @@ function getAuthHeader(shopId) {
 }
 
 /**
- * フォルダ一覧取得（ページング対応・全件取得）
+ * フォルダ一覧取得（1ページ目のみ・最大100件）
  */
 function getFolders(shopId) {
-  var allFolders = [];
-  var offset = 1;
-  var limit = 100;
-  var totalCount = null;
-  var authHeader = getAuthHeader(shopId);
+  var url = CABINET_API_BASE + '/folders/get?offset=1&limit=100';
+  var response = UrlFetchApp.fetch(url, {
+    method: 'get',
+    headers: { 'Authorization': getAuthHeader(shopId) },
+    muteHttpExceptions: true
+  });
 
-  while (true) {
-    var url = CABINET_API_BASE + '/folders/get?offset=' + offset + '&limit=' + limit;
-    var response = UrlFetchApp.fetch(url, {
-      method: 'get',
-      headers: { 'Authorization': authHeader },
-      muteHttpExceptions: true
-    });
-
-    var xml = response.getContentText();
-    var parsed = parseFoldersPage(xml);
-
-    // QPSLimitエラー時はリトライ
-    if (parsed.resultCode && parsed.resultCode.indexOf('QPSLimit') !== -1) {
-      Utilities.sleep(3000);
-      continue;
-    }
-
-    if (parsed.error) {
-      return parsed;
-    }
-
-    if (totalCount === null) {
-      totalCount = parsed.folderAllCount;
-    }
-
-    allFolders = allFolders.concat(parsed.folders);
-
-    if (allFolders.length >= totalCount) {
-      break;
-    }
-
-    offset += limit;
-    Utilities.sleep(1000); // レート制限対策
-  }
-
-  return {
-    status: 'success',
-    resultCode: 'N000',
-    folderAllCount: totalCount,
-    folders: allFolders
-  };
+  var xml = response.getContentText();
+  return parseFoldersPage(xml);
 }
 
 /**
