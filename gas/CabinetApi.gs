@@ -67,18 +67,52 @@ function getAuthHeader(shopId) {
 }
 
 /**
- * フォルダ一覧取得
+ * フォルダ一覧取得（ページング対応・全件取得）
  */
 function getFolders(shopId) {
-  var url = CABINET_API_BASE + '/folders/get';
-  var response = UrlFetchApp.fetch(url, {
-    method: 'get',
-    headers: { 'Authorization': getAuthHeader(shopId) },
-    muteHttpExceptions: true
-  });
+  var allFolders = [];
+  var offset = 1;
+  var limit = 100;
+  var totalCount = null;
+  var authHeader = getAuthHeader(shopId);
 
-  var xml = response.getContentText();
-  return parseFoldersXml(xml);
+  while (true) {
+    var url = CABINET_API_BASE + '/folders/get?offset=' + offset + '&limit=' + limit;
+    var response = UrlFetchApp.fetch(url, {
+      method: 'get',
+      headers: { 'Authorization': authHeader },
+      muteHttpExceptions: true
+    });
+
+    var xml = response.getContentText();
+    var parsed = parseFoldersPage(xml);
+
+    if (parsed.error) {
+      return parsed;
+    }
+
+    if (totalCount === null) {
+      totalCount = parsed.folderAllCount;
+    }
+
+    allFolders = allFolders.concat(parsed.folders);
+
+    if (allFolders.length >= totalCount) {
+      break;
+    }
+
+    offset += limit;
+    Utilities.sleep(600); // レート制限対策（秒間2リクエスト）
+  }
+
+  var tree = buildFolderTree(allFolders);
+
+  return {
+    status: 'success',
+    resultCode: 'N000',
+    folderAllCount: totalCount,
+    folders: tree
+  };
 }
 
 /**
@@ -171,7 +205,7 @@ function escapeXml(str) {
 
 // --- XML パース ---
 
-function parseFoldersXml(xml) {
+function parseFoldersPage(xml) {
   var doc = XmlService.parse(xml);
   var root = doc.getRootElement();
 
@@ -185,12 +219,12 @@ function parseFoldersXml(xml) {
   var resultCode = resultNode.getChildText('resultCode');
   var folderAllCount = parseInt(resultNode.getChildText('folderAllCount') || '0');
   var foldersNode = resultNode.getChild('folders');
-  var flatList = [];
+  var folders = [];
 
   if (foldersNode) {
     var folderNodes = foldersNode.getChildren('folder');
     folderNodes.forEach(function(node) {
-      flatList.push({
+      folders.push({
         folderId: parseInt(node.getChildText('FolderId')),
         folderName: node.getChildText('FolderName'),
         folderPath: node.getChildText('FolderPath') || ''
@@ -198,14 +232,11 @@ function parseFoldersXml(xml) {
     });
   }
 
-  // FolderPathからツリー構造を構築
-  var tree = buildFolderTree(flatList);
-
   return {
     status: status,
     resultCode: resultCode,
     folderAllCount: folderAllCount,
-    folders: tree
+    folders: folders
   };
 }
 
