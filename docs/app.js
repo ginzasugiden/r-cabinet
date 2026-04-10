@@ -66,7 +66,7 @@
   }
 
   // --- 初期化 ---
-  function init() {
+  async function init() {
     var savedUrl = getGasUrl();
     if (savedUrl) {
       gasUrlInput.value = savedUrl;
@@ -76,7 +76,31 @@
     var token = getToken();
     var shopName = sessionStorage.getItem('shopName') || '';
     if (token && savedUrl) {
-      showMainScreen(shopName);
+      // トークンの有効性を確認
+      loginScreen.hidden = true;
+      mainScreen.hidden = false;
+      shopNameDisplay.textContent = shopName;
+      showSpinner(folderTree, 'セッション確認中...');
+      try {
+        var data = await gasGet('getFolders', null, 10000);
+        if (data && data.authRequired) {
+          sessionStorage.removeItem('token');
+          sessionStorage.removeItem('shopName');
+          showLoginScreen();
+          return;
+        }
+        // トークン有効 → フォルダ表示
+        folderTree.innerHTML = '';
+        if (data.folders && data.folders.length > 0) {
+          renderTreeNodes(data.folders, folderTree, 0);
+        } else {
+          folderTree.innerHTML = '<p class="tree-loading">フォルダなし</p>';
+        }
+      } catch (e) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('shopName');
+        showLoginScreen();
+      }
     } else {
       showLoginScreen();
     }
@@ -143,7 +167,7 @@
       var result = await gasGet('login', {
         shopId: shopId,
         password: password
-      });
+      }, 15000);
 
       if (result.success) {
         sessionStorage.setItem('token', result.token);
@@ -155,7 +179,7 @@
         loginError.style.display = 'block';
       }
     } catch (e) {
-      loginError.textContent = '通信エラー: ' + e.message;
+      loginError.textContent = e.message || '通信エラー';
       loginError.style.display = 'block';
     }
     loginBtn.disabled = false;
@@ -182,9 +206,13 @@
   }
 
   // --- API呼び出し (JSONP for GET, fetch for POST) ---
-  function gasGet(action, params) {
+  var JSONP_TIMEOUT = 30000; // 30秒
+
+  function gasGet(action, params, timeout) {
+    var ms = timeout || JSONP_TIMEOUT;
     return new Promise(function (resolve, reject) {
       var cbName = '_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      var done = false;
       var qs = 'action=' + encodeURIComponent(action)
         + '&callback=' + cbName
         + '&token=' + encodeURIComponent(getToken());
@@ -195,7 +223,18 @@
       }
       var url = getGasUrl() + '?' + qs;
 
+      var timer = setTimeout(function () {
+        if (done) return;
+        done = true;
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        reject(new Error('タイムアウトしました'));
+      }, ms);
+
       window[cbName] = function (data) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
         delete window[cbName];
         if (script.parentNode) script.parentNode.removeChild(script);
         resolve(data);
@@ -204,6 +243,9 @@
       var script = document.createElement('script');
       script.src = url;
       script.onerror = function () {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
         delete window[cbName];
         if (script.parentNode) script.parentNode.removeChild(script);
         reject(new Error('JSONP request failed'));
