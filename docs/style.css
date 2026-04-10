@@ -347,6 +347,83 @@ button:disabled {
   color: #555;
 }
 
+/* 画像一覧ヘッダー */
+.files-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.files-header span {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.files-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.files-controls label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: normal;
+  margin-bottom: 0;
+}
+
+.files-controls select {
+  width: auto;
+  padding: 4px 6px;
+  font-size: 0.85rem;
+}
+
+/* ページネーション */
+.pagination {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+  margin: 8px 0;
+  flex-wrap: wrap;
+}
+
+.pagination:empty {
+  display: none;
+}
+
+.page-btn {
+  min-width: 32px;
+  height: 28px;
+  padding: 0 8px;
+  font-size: 0.85rem;
+  background: #fff;
+  color: #333;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.page-btn:hover {
+  background: #f0f0f0;
+}
+
+.page-btn.active {
+  background: #bf0000;
+  color: #fff;
+  border-color: #bf0000;
+}
+
+.page-btn:disabled {
+  background: #f5f5f5;
+  color: #ccc;
+  cursor: not-allowed;
+}
+
 /* 既存画像 */
 #existingFiles {
   display: flex;

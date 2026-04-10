@@ -20,7 +20,9 @@ function doGet(e) {
       if (!folderId) {
         return jsonResponse({ error: 'folderId is required' }, e);
       }
-      result = getFolderFiles(auth2.shopId, folderId);
+      var offset = e.parameter.offset || '1';
+      var limit = e.parameter.limit || '20';
+      result = getFolderFiles(auth2.shopId, folderId, offset, limit);
     } else if (action === 'getUploadResult') {
       var uploadId = e.parameter.uploadId;
       if (!uploadId) {

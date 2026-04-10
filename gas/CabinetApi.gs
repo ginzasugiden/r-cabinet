@@ -84,8 +84,9 @@ function getFolders(shopId) {
 /**
  * フォルダ内画像一覧取得
  */
-function getFolderFiles(shopId, folderId) {
-  var url = CABINET_API_BASE + '/folder/files/get?folderId=' + folderId;
+function getFolderFiles(shopId, folderId, offset, limit) {
+  var url = CABINET_API_BASE + '/folder/files/get?folderId=' + folderId
+    + '&offset=' + (offset || 1) + '&limit=' + (limit || 20);
   var response = UrlFetchApp.fetch(url, {
     method: 'get',
     headers: { 'Authorization': getAuthHeader(shopId) },

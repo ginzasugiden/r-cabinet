@@ -72,8 +72,35 @@
 
           <!-- フォルダ内既存画像 -->
           <section class="section" id="existingSection" hidden>
-            <h2 id="existingTitle">フォルダ内の既存画像</h2>
+            <div class="files-header">
+              <span id="filesCount"></span>
+              <div class="files-controls">
+                <label>並べ替え:
+                  <select id="sortSelect">
+                    <option value="date_desc">登録日の新しい順</option>
+                    <option value="date_asc">登録日の古い順</option>
+                    <option value="name_asc">画像名 昇順</option>
+                    <option value="name_desc">画像名 降順</option>
+                    <option value="path_asc">ファイル名 昇順</option>
+                    <option value="path_desc">ファイル名 降順</option>
+                    <option value="size_desc">サイズ 大きい順</option>
+                    <option value="size_asc">サイズ 小さい順</option>
+                  </select>
+                </label>
+                <label>表示:
+                  <select id="limitSelect">
+                    <option value="20">20件</option>
+                    <option value="40">40件</option>
+                    <option value="60">60件</option>
+                    <option value="80">80件</option>
+                    <option value="100">100件</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+            <div id="pagination" class="pagination"></div>
             <div id="existingFiles"></div>
+            <div id="paginationBottom" class="pagination"></div>
           </section>
         </div>
 
