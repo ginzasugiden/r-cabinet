@@ -52,25 +52,38 @@
     refreshFoldersBtn.disabled = false;
   }
 
-  // --- API呼び出し ---
-  async function gasGet(action, params) {
-    let url = getGasUrl() + '?action=' + encodeURIComponent(action);
-    if (params) {
-      for (const [k, v] of Object.entries(params)) {
-        url += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(v);
+  // --- API呼び出し (JSONP for GET, fetch for POST) ---
+  function gasGet(action, params) {
+    return new Promise(function (resolve, reject) {
+      var cbName = '_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+      var qs = 'action=' + encodeURIComponent(action) + '&callback=' + cbName;
+      if (params) {
+        for (var k in params) {
+          qs += '&' + encodeURIComponent(k) + '=' + encodeURIComponent(params[k]);
+        }
       }
-    }
-    const res = await fetch(url, { redirect: 'follow' });
-    if (!res.ok) {
-      throw new Error('GAS request failed: ' + res.status);
-    }
-    return res.json();
+      var url = getGasUrl() + '?' + qs;
+
+      window[cbName] = function (data) {
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        resolve(data);
+      };
+
+      var script = document.createElement('script');
+      script.src = url;
+      script.onerror = function () {
+        delete window[cbName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+        reject(new Error('JSONP request failed'));
+      };
+      document.head.appendChild(script);
+    });
   }
 
   async function gasPost(body) {
     const res = await fetch(getGasUrl(), {
       method: 'POST',
-      redirect: 'follow',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(body),
     });

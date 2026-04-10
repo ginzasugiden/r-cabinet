@@ -12,16 +12,16 @@ function doGet(e) {
     } else if (action === 'getFolderFiles') {
       var folderId = e.parameter.folderId;
       if (!folderId) {
-        return jsonResponse({ error: 'folderId is required' });
+        return jsonResponse({ error: 'folderId is required' }, e);
       }
       result = getFolderFiles(folderId);
     } else {
-      return jsonResponse({ error: 'Unknown action: ' + action });
+      return jsonResponse({ error: 'Unknown action: ' + action }, e);
     }
 
-    return jsonResponse(result);
+    return jsonResponse(result, e);
   } catch (err) {
-    return jsonResponse({ error: String(err) });
+    return jsonResponse({ error: String(err) }, e);
   }
 }
 
@@ -41,8 +41,15 @@ function doPost(e) {
   }
 }
 
-function jsonResponse(data) {
+function jsonResponse(data, e) {
+  var jsonStr = JSON.stringify(data);
+  var callback = (e && e.parameter) ? e.parameter.callback : null;
+  if (callback) {
+    return ContentService
+      .createTextOutput(callback + '(' + jsonStr + ')')
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
   return ContentService
-    .createTextOutput(JSON.stringify(data))
+    .createTextOutput(jsonStr)
     .setMimeType(ContentService.MimeType.JSON);
 }
