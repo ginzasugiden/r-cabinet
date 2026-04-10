@@ -33,48 +33,54 @@
     <!-- メイン画面（ログイン後） -->
     <div id="mainScreen" hidden>
       <!-- ヘッダー -->
-      <section class="section header-bar">
+      <div class="header-bar">
         <span id="shopNameDisplay"></span>
         <button id="logoutBtn" class="btn-small">ログアウト</button>
-      </section>
-
-      <!-- フォルダ選択 -->
-      <section class="section">
-        <label for="folderSelect">フォルダ:</label>
-        <div class="input-row">
-          <select id="folderSelect">
-            <option value="">-- フォルダを選択 --</option>
-          </select>
-          <button id="refreshFolders">更新</button>
-        </div>
-      </section>
-
-      <!-- ドロップゾーン -->
-      <section class="section">
-        <div id="dropZone">
-          <p>ここに画像をドラッグ&ドロップ<br>またはクリックして選択</p>
-          <input type="file" id="fileInput" multiple accept="image/*" hidden>
-        </div>
-      </section>
-
-      <!-- アップロード待ちリスト -->
-      <section class="section" id="queueSection" hidden>
-        <h2>アップロード待ち</h2>
-        <div id="uploadQueue"></div>
-        <button id="startUpload" disabled>アップロード開始</button>
-      </section>
-
-      <!-- 進捗 -->
-      <div id="progress" hidden>
-        <div id="progressBar"><div id="progressFill"></div></div>
-        <span id="progressText"></span>
       </div>
 
-      <!-- フォルダ内既存画像 -->
-      <section class="section" id="existingSection" hidden>
-        <h2>フォルダ内の既存画像</h2>
-        <div id="existingFiles"></div>
-      </section>
+      <!-- 2カラムレイアウト -->
+      <div class="main-layout">
+        <!-- 左サイドバー: フォルダツリー -->
+        <div class="sidebar">
+          <div class="sidebar-header">
+            <span>フォルダ</span>
+            <button id="refreshFolders" class="btn-small">更新</button>
+          </div>
+          <div id="folderTree" class="folder-tree">
+            <p class="tree-loading">読み込み中...</p>
+          </div>
+        </div>
+
+        <!-- 右メインエリア -->
+        <div class="main-content">
+          <!-- ドロップゾーン -->
+          <section class="section">
+            <div id="dropZone">
+              <p>ここに画像をドラッグ&ドロップ<br>またはクリックして選択</p>
+              <input type="file" id="fileInput" multiple accept="image/*" hidden>
+            </div>
+          </section>
+
+          <!-- アップロード待ちリスト -->
+          <section class="section" id="queueSection" hidden>
+            <h2>アップロード待ち</h2>
+            <div id="uploadQueue"></div>
+            <button id="startUpload" disabled>アップロード開始</button>
+          </section>
+
+          <!-- 進捗 -->
+          <div id="progress" hidden>
+            <div id="progressBar"><div id="progressFill"></div></div>
+            <span id="progressText"></span>
+          </div>
+
+          <!-- フォルダ内既存画像 -->
+          <section class="section" id="existingSection" hidden>
+            <h2 id="existingTitle">フォルダ内の既存画像</h2>
+            <div id="existingFiles"></div>
+          </section>
+        </div>
+      </div>
     </div>
   </div>
 

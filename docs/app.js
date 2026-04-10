@@ -16,8 +16,8 @@
   var mainScreen = document.getElementById('mainScreen');
   var shopNameDisplay = document.getElementById('shopNameDisplay');
   var logoutBtn = document.getElementById('logoutBtn');
-  var folderSelect = document.getElementById('folderSelect');
   var refreshFoldersBtn = document.getElementById('refreshFolders');
+  var folderTree = document.getElementById('folderTree');
   var dropZone = document.getElementById('dropZone');
   var fileInput = document.getElementById('fileInput');
   var queueSection = document.getElementById('queueSection');
@@ -27,12 +27,14 @@
   var progressFill = document.getElementById('progressFill');
   var progressText = document.getElementById('progressText');
   var existingSection = document.getElementById('existingSection');
+  var existingTitle = document.getElementById('existingTitle');
   var existingFiles = document.getElementById('existingFiles');
 
-  var MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
-  var UPLOAD_INTERVAL = 400; // ms between uploads (rate limit)
+  var MAX_FILE_SIZE = 2 * 1024 * 1024;
+  var UPLOAD_INTERVAL = 400;
 
-  var queue = []; // { id, file, displayName, status, error }
+  var queue = [];
+  var selectedFolderId = null;
 
   // --- GAS URL管理 ---
   function getGasUrl() {
@@ -141,6 +143,7 @@
   logoutBtn.addEventListener('click', function () {
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('shopName');
+    selectedFolderId = null;
     showLoginScreen();
   });
 
@@ -187,9 +190,7 @@
   }
 
   async function gasPost(body) {
-    if (body.action !== 'login') {
-      body.token = getToken();
-    }
+    body.token = getToken();
     var res = await fetch(getGasUrl(), {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
@@ -201,40 +202,75 @@
     return res.json();
   }
 
-  // --- フォルダ一覧 ---
+  // --- フォルダツリー ---
   async function loadFolders() {
-    folderSelect.innerHTML = '<option value="">読み込み中...</option>';
+    folderTree.innerHTML = '<p class="tree-loading">読み込み中...</p>';
     try {
       var data = await gasGet('getFolders');
       if (checkAuthRequired(data)) return;
-      folderSelect.innerHTML = '<option value="">-- フォルダを選択 --</option>';
-      if (data.folders) {
+      folderTree.innerHTML = '';
+      if (data.folders && data.folders.length > 0) {
         data.folders.forEach(function (f) {
-          var opt = document.createElement('option');
-          opt.value = f.folderId;
-          opt.textContent = f.folderName;
-          folderSelect.appendChild(opt);
+          var item = document.createElement('div');
+          item.className = 'folder-item';
+          item.setAttribute('data-folder-id', f.folderId);
+
+          var icon = document.createElement('span');
+          icon.className = 'folder-icon';
+          icon.textContent = '\uD83D\uDCC1';
+          item.appendChild(icon);
+
+          var name = document.createElement('span');
+          name.className = 'folder-name';
+          name.textContent = f.folderName;
+          item.appendChild(name);
+
+          item.addEventListener('click', function () {
+            selectFolder(f.folderId, f.folderName);
+          });
+
+          folderTree.appendChild(item);
         });
+
+        // 復元
+        if (selectedFolderId) {
+          var active = folderTree.querySelector('[data-folder-id="' + selectedFolderId + '"]');
+          if (active) active.classList.add('active');
+        }
+      } else {
+        folderTree.innerHTML = '<p class="tree-loading">フォルダなし</p>';
       }
     } catch (e) {
-      folderSelect.innerHTML = '<option value="">取得失敗</option>';
+      folderTree.innerHTML = '<p class="tree-loading" style="color:#e00">取得失敗</p>';
     }
+  }
+
+  function selectFolder(folderId, folderName) {
+    selectedFolderId = folderId;
+
+    // ハイライト更新
+    var items = folderTree.querySelectorAll('.folder-item');
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.remove('active');
+    }
+    var active = folderTree.querySelector('[data-folder-id="' + folderId + '"]');
+    if (active) active.classList.add('active');
+
+    // 画像一覧読み込み
+    loadFolderFiles(folderId, folderName);
+
+    // キューのボタン状態更新
+    renderQueue();
   }
 
   refreshFoldersBtn.addEventListener('click', loadFolders);
 
-  folderSelect.addEventListener('change', function () {
-    var folderId = folderSelect.value;
-    if (folderId) {
-      loadFolderFiles(folderId);
-    } else {
-      existingSection.hidden = true;
-    }
-  });
-
   // --- フォルダ内画像一覧 ---
-  async function loadFolderFiles(folderId) {
+  async function loadFolderFiles(folderId, folderName) {
     existingSection.hidden = false;
+    if (folderName) {
+      existingTitle.textContent = folderName + ' の画像';
+    }
     existingFiles.innerHTML = '<p style="color:#999">読み込み中...</p>';
     try {
       var data = await gasGet('getFolderFiles', { folderId: folderId });
@@ -384,7 +420,7 @@
     });
 
     var hasPending = queue.some(function (item) { return item.status === 'pending'; });
-    startUploadBtn.disabled = !hasPending || !folderSelect.value;
+    startUploadBtn.disabled = !hasPending || !selectedFolderId;
   }
 
   function formatSize(bytes) {
@@ -397,8 +433,7 @@
   startUploadBtn.addEventListener('click', startUpload);
 
   async function startUpload() {
-    var folderId = folderSelect.value;
-    if (!folderId) return;
+    if (!selectedFolderId) return;
 
     var pending = queue.filter(function (item) { return item.status === 'pending'; });
     if (pending.length === 0) return;
@@ -417,7 +452,7 @@
         var base64 = await fileToBase64(item.file);
         var result = await gasPost({
           action: 'uploadFile',
-          folderId: parseInt(folderId),
+          folderId: parseInt(selectedFolderId),
           fileName: item.displayName,
           fileData: base64,
           mimeType: item.file.type,
@@ -449,7 +484,7 @@
       }
     }
 
-    loadFolderFiles(folderId);
+    loadFolderFiles(selectedFolderId);
   }
 
   function updateProgress(done, total) {
