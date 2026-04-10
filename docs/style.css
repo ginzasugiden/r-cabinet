@@ -55,11 +55,13 @@ label {
 }
 
 input[type="text"],
+input[type="password"],
 select {
   padding: 8px 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
   font-size: 0.95rem;
+  width: 100%;
 }
 
 button {
@@ -219,4 +221,25 @@ button:disabled {
   width: 100%;
   padding: 12px;
   font-size: 1rem;
+}
+
+/* ヘッダーバー */
+.header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-bar span {
+  font-weight: bold;
+}
+
+.btn-small {
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  background: #666;
+}
+
+.btn-small:hover {
+  background: #444;
 }

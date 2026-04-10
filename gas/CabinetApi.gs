@@ -8,21 +8,30 @@ const SPREADSHEET_ID = '1iYeV2SbOVoRH8Qjm2d1w5tWmhlE_zcc-yO1tDSLN7Rk';
 const SHEET_NAME = 'api_key';
 
 /**
- * スプレッドシートからショップ一覧を取得（A列:id, H列:sname）
+ * ログイン認証
  */
-function getShops() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const sheet = ss.getSheetByName(SHEET_NAME);
-  const data = sheet.getDataRange().getValues();
-  const shops = [];
-  for (var i = 1; i < data.length; i++) {
-    var id = String(data[i][0]).trim();
-    var sname = String(data[i][7]).trim();
-    if (id) {
-      shops.push({ shopId: id, shopName: sname || id });
+function login(shopId, password) {
+  if (!shopId || !password) {
+    return { success: false, error: 'IDとパスワードを入力してください' };
+  }
+  var ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  var sheet = ss.getSheetByName(SHEET_NAME);
+  var data = sheet.getDataRange().getValues();
+
+  for (var i = 0; i < data.length; i++) {
+    if (String(data[i][0]).trim() === shopId) {
+      var pwRaw = String(data[i][5]).replace(/^BASE64:/, '');
+      var storedPw = Utilities.newBlob(Utilities.base64Decode(pwRaw)).getDataAsString();
+      if (password !== storedPw) {
+        return { success: false, error: 'IDまたはパスワードが違います' };
+      }
+      var shopName = String(data[i][7]).trim() || shopId;
+      var token = Utilities.getUuid();
+      CacheService.getScriptCache().put('session_' + token, shopId, 21600);
+      return { success: true, token: token, shopName: shopName };
     }
   }
-  return { shops: shops };
+  return { success: false, error: 'IDまたはパスワードが違います' };
 }
 
 /**

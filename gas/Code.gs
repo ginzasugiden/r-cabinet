@@ -7,24 +7,18 @@ function doGet(e) {
     var action = (e && e.parameter) ? e.parameter.action : '';
     var result;
 
-    if (action === 'getShops') {
-      result = getShops();
-    } else if (action === 'getFolders') {
-      var shopId = e.parameter.shopId;
-      if (!shopId) {
-        return jsonResponse({ error: 'shopId is required' }, e);
-      }
-      result = getFolders(shopId);
+    if (action === 'getFolders') {
+      var auth = authenticate(e.parameter.token);
+      if (auth.error) return jsonResponse(auth, e);
+      result = getFolders(auth.shopId);
     } else if (action === 'getFolderFiles') {
-      var shopId2 = e.parameter.shopId;
+      var auth2 = authenticate(e.parameter.token);
+      if (auth2.error) return jsonResponse(auth2, e);
       var folderId = e.parameter.folderId;
-      if (!shopId2) {
-        return jsonResponse({ error: 'shopId is required' }, e);
-      }
       if (!folderId) {
         return jsonResponse({ error: 'folderId is required' }, e);
       }
-      result = getFolderFiles(shopId2, folderId);
+      result = getFolderFiles(auth2.shopId, folderId);
     } else {
       return jsonResponse({ error: 'Unknown action: ' + action }, e);
     }
@@ -40,15 +34,36 @@ function doPost(e) {
     var body = JSON.parse(e.postData.contents);
     var action = body.action;
 
-    if (action === 'uploadFile') {
-      var result = uploadFile(body);
+    if (action === 'login') {
+      var result = login(body.shopId, body.password);
       return jsonResponse(result);
+    } else if (action === 'uploadFile') {
+      var auth = authenticate(body.token);
+      if (auth.error) return jsonResponse(auth);
+      body.shopId = auth.shopId;
+      var result2 = uploadFile(body);
+      return jsonResponse(result2);
     } else {
       return jsonResponse({ error: 'Unknown action: ' + action });
     }
   } catch (err) {
     return jsonResponse({ error: String(err) });
   }
+}
+
+/**
+ * トークン認証
+ */
+function authenticate(token) {
+  if (!token) {
+    return { error: '認証が必要です', authRequired: true };
+  }
+  var cache = CacheService.getScriptCache();
+  var shopId = cache.get('session_' + token);
+  if (!shopId) {
+    return { error: '認証が必要です', authRequired: true };
+  }
+  return { shopId: shopId };
 }
 
 function jsonResponse(data, e) {
