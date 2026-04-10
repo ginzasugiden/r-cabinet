@@ -6,8 +6,6 @@
 
   // --- DOM要素 ---
   var gasUrlInput = document.getElementById('gasUrl');
-  var saveUrlBtn = document.getElementById('saveUrl');
-  var gasUrlSection = document.getElementById('gasUrlSection');
   var loginScreen = document.getElementById('loginScreen');
   var loginShopIdInput = document.getElementById('loginShopId');
   var loginPasswordInput = document.getElementById('loginPassword');
@@ -99,7 +97,6 @@
     var savedUrl = getGasUrl();
     if (savedUrl) {
       gasUrlInput.value = savedUrl;
-      gasUrlSection.hidden = true;
     }
 
     var token = getToken();
@@ -117,9 +114,6 @@
     mainScreen.hidden = true;
     loginError.style.display = 'none';
     loginSpinner.style.display = 'none';
-    if (!getGasUrl()) {
-      gasUrlSection.hidden = false;
-    }
   }
 
   function showMainScreen(shopName) {
@@ -129,14 +123,6 @@
     loadFolders();
   }
 
-  // --- GAS URL保存 ---
-  saveUrlBtn.addEventListener('click', function () {
-    var url = gasUrlInput.value.trim();
-    if (!url) return;
-    localStorage.setItem('gasUrl', url);
-    gasUrlSection.hidden = true;
-  });
-
   // --- ログイン ---
   loginBtn.addEventListener('click', doLogin);
   loginPasswordInput.addEventListener('keydown', function (e) {
@@ -145,16 +131,12 @@
 
   async function doLogin() {
     var gasUrl = gasUrlInput.value.trim();
-    if (!getGasUrl() && gasUrl) {
-      localStorage.setItem('gasUrl', gasUrl);
-      gasUrlSection.hidden = true;
-    }
-    if (!getGasUrl()) {
+    if (!gasUrl) {
       loginError.textContent = 'GAS URLを入力してください';
       loginError.style.display = 'block';
-      gasUrlSection.hidden = false;
       return;
     }
+    localStorage.setItem('gasUrl', gasUrl);
 
     var shopId = loginShopIdInput.value.trim();
     var password = loginPasswordInput.value;
