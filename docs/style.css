@@ -12,7 +12,7 @@ body {
 }
 
 .container {
-  max-width: 1100px;
+  max-width: 1400px;
   margin: 20px auto;
   padding: 0 16px;
 }
@@ -373,20 +373,30 @@ button:disabled {
   box-shadow: 0 0 0 2px rgba(191, 0, 0, 0.3);
 }
 
-/* 画像詳細パネル */
-#imageDetail {
-  position: relative;
-  margin-top: 16px;
-  padding: 16px;
-  background: #fafafa;
-  border: 1px solid #eee;
+/* 右サイド画像詳細パネル */
+.detail-panel {
+  width: 300px;
+  flex-shrink: 0;
+  background: #fff;
   border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  align-self: flex-start;
+  position: sticky;
+  top: 20px;
+}
+
+.detail-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  font-weight: bold;
+  font-size: 0.9rem;
 }
 
 .detail-close {
-  position: absolute;
-  top: 8px;
-  right: 12px;
   font-size: 1.4rem;
   color: #999;
   cursor: pointer;
@@ -397,10 +407,16 @@ button:disabled {
   color: #333;
 }
 
+.detail-panel-body {
+  padding: 12px;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
 .detail-preview {
   display: block;
   max-width: 100%;
-  max-height: 240px;
+  max-height: 200px;
   margin: 0 auto 12px;
   border-radius: 4px;
   border: 1px solid #ddd;
