@@ -21,6 +21,17 @@ function doGet(e) {
         return jsonResponse({ error: 'folderId is required' }, e);
       }
       result = getFolderFiles(auth2.shopId, folderId);
+    } else if (action === 'getUploadResult') {
+      var uploadId = e.parameter.uploadId;
+      if (!uploadId) {
+        return jsonResponse({ error: 'uploadId is required' }, e);
+      }
+      var cached = CacheService.getScriptCache().get('upload_' + uploadId);
+      if (cached) {
+        result = JSON.parse(cached);
+      } else {
+        result = { pending: true };
+      }
     } else {
       return jsonResponse({ error: 'Unknown action: ' + action }, e);
     }
@@ -33,35 +44,32 @@ function doGet(e) {
 
 function doPost(e) {
   try {
-    // form submit から受け取る（e.parameter にフィールドが入る）
-    var params = e.parameter || {};
-    var action = params.action;
+    var body = JSON.parse(e.postData.contents);
+    var action = body.action;
 
     if (action === 'uploadFile') {
-      var auth = authenticate(params.token);
-      if (auth.error) return htmlPostMessage(auth);
-      var body = {
-        shopId: auth.shopId,
-        folderId: params.folderId,
-        fileName: params.fileName,
-        fileData: params.fileData,
-        mimeType: params.mimeType,
-        originalFileName: params.originalFileName
-      };
-      var result = uploadFile(body);
-      return htmlPostMessage(result);
+      var uploadId = body.uploadId;
+      var auth = authenticate(body.token);
+      var result;
+      if (auth.error) {
+        result = auth;
+      } else {
+        body.shopId = auth.shopId;
+        result = uploadFile(body);
+      }
+      if (uploadId) {
+        CacheService.getScriptCache().put('upload_' + uploadId, JSON.stringify(result), 300);
+      }
+      return ContentService.createTextOutput(JSON.stringify(result))
+        .setMimeType(ContentService.MimeType.JSON);
     } else {
-      return htmlPostMessage({ error: 'Unknown action: ' + action });
+      return ContentService.createTextOutput(JSON.stringify({ error: 'Unknown action' }))
+        .setMimeType(ContentService.MimeType.JSON);
     }
   } catch (err) {
-    return htmlPostMessage({ error: String(err) });
+    return ContentService.createTextOutput(JSON.stringify({ error: String(err) }))
+      .setMimeType(ContentService.MimeType.JSON);
   }
-}
-
-function htmlPostMessage(data) {
-  var jsonStr = JSON.stringify(data);
-  var html = '<html><body><script>window.parent.postMessage(' + jsonStr + ', "*");<\/script></body></html>';
-  return HtmlService.createHtmlOutput(html);
 }
 
 /**

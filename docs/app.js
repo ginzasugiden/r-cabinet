@@ -224,51 +224,30 @@
     });
   }
 
-  // --- POST via hidden iframe + form submit ---
-  var uploadIframe = document.createElement('iframe');
-  uploadIframe.name = 'uploadFrame';
-  uploadIframe.style.display = 'none';
-  document.body.appendChild(uploadIframe);
+  // --- POST via no-cors + polling ---
+  async function gasPost(fields) {
+    var uploadId = crypto.randomUUID();
+    fields.token = getToken();
+    fields.uploadId = uploadId;
 
-  function gasPost(fields) {
-    return new Promise(function (resolve, reject) {
-      var done = false;
-      var timer = setTimeout(function () {
-        if (done) return;
-        done = true;
-        window.removeEventListener('message', onMsg);
-        reject(new Error('アップロードがタイムアウトしました'));
-      }, 120000); // 2分タイムアウト
-
-      function onMsg(e) {
-        if (done) return;
-        if (typeof e.data !== 'object') return;
-        done = true;
-        clearTimeout(timer);
-        window.removeEventListener('message', onMsg);
-        resolve(e.data);
-      }
-      window.addEventListener('message', onMsg);
-
-      var form = document.createElement('form');
-      form.method = 'POST';
-      form.action = GAS_URL;
-      form.target = 'uploadFrame';
-      form.style.display = 'none';
-
-      fields.token = getToken();
-      for (var key in fields) {
-        var input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = key;
-        input.value = fields[key];
-        form.appendChild(input);
-      }
-
-      document.body.appendChild(form);
-      form.submit();
-      document.body.removeChild(form);
+    // 1. no-cors POST（レスポンスは読めないがリクエストは届く）
+    await fetch(GAS_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
+      body: JSON.stringify(fields)
     });
+
+    // 2. ポーリングで結果を取得（2秒間隔、最大10回）
+    await sleep(2000);
+    for (var i = 0; i < 10; i++) {
+      var result = await gasGet('getUploadResult', { uploadId: uploadId });
+      if (!result.pending) {
+        return result;
+      }
+      await sleep(2000);
+    }
+    throw new Error('アップロード結果の取得がタイムアウトしました');
   }
 
   // --- フォルダツリー ---
