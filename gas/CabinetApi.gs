@@ -4,16 +4,35 @@
 
 const CABINET_API_BASE = 'https://api.rms.rakuten.co.jp/es/1.0/cabinet';
 
+const SPREADSHEET_ID = '1iYeV2SbOVoRH8Qjm2d1w5tWmhlE_zcc-yO1tDSLN7Rk';
+const SHEET_NAME = 'api_key';
+const TARGET_ID = 'tokyoflower';
+
+/**
+ * スプレッドシートからAPIキーを取得しデコード
+ */
+function getApiKeys() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const sheet = ss.getSheetByName(SHEET_NAME);
+  const data = sheet.getDataRange().getValues();
+
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0] === TARGET_ID) {
+      const licenseKeyRaw = String(data[i][2]).replace(/^BASE64:/, '');
+      const serviceSecretRaw = String(data[i][3]).replace(/^BASE64:/, '');
+      const licenseKey = Utilities.newBlob(Utilities.base64Decode(licenseKeyRaw)).getDataAsString();
+      const serviceSecret = Utilities.newBlob(Utilities.base64Decode(serviceSecretRaw)).getDataAsString();
+      return { serviceSecret, licenseKey };
+    }
+  }
+  throw new Error('API key row not found for id: ' + TARGET_ID);
+}
+
 /**
  * 認証ヘッダーを生成
  */
 function getAuthHeader() {
-  const props = PropertiesService.getScriptProperties();
-  const serviceSecret = props.getProperty('SERVICE_SECRET');
-  const licenseKey = props.getProperty('LICENSE_KEY');
-  if (!serviceSecret || !licenseKey) {
-    throw new Error('SERVICE_SECRET or LICENSE_KEY is not set in script properties');
-  }
+  const { serviceSecret, licenseKey } = getApiKeys();
   const encoded = Utilities.base64Encode(serviceSecret + ':' + licenseKey);
   return 'ESA ' + encoded;
 }

@@ -68,6 +68,7 @@
   async function gasPost(body) {
     const res = await fetch(getGasUrl(), {
       method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
       body: JSON.stringify(body),
     });
     return res.json();
