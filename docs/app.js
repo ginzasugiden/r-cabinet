@@ -395,7 +395,7 @@
   function selectFolder(folderId, folderName) {
     selectedFolderId = folderId;
     selectedFolderName = folderName;
-    console.log('フォルダ選択: folderId =', folderId, 'typeof:', typeof folderId, 'folderName:', folderName);
+    console.log('★フォルダ選択:', selectedFolderId, 'typeof:', typeof selectedFolderId, 'folderName:', folderName);
     currentPage = 1;
     allFilesCache = null;
     allFilesCacheFolderId = null;
@@ -665,6 +665,7 @@
   dropZone.addEventListener('drop', function (e) {
     e.preventDefault();
     dropZone.classList.remove('active');
+    console.log('★ドロップ: selectedFolderId =', selectedFolderId);
     if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
     addFiles(e.dataTransfer.files);
   });
@@ -692,7 +693,7 @@
 
   pasteZone.addEventListener('paste', function (e) {
     e.preventDefault();
-    console.log('paste event fired, selectedFolderId:', selectedFolderId, 'selectedFolderName:', selectedFolderName, 'typeof:', typeof selectedFolderId);
+    console.log('★ペーストイベント発火: selectedFolderId =', selectedFolderId, 'typeof:', typeof selectedFolderId);
     var items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
     var imageFile = null;
@@ -733,7 +734,7 @@
 
   pasteUploadBtn.addEventListener('click', function (e) {
     e.stopPropagation();
-    console.log('ペーストアップロード: folderId =', selectedFolderId);
+    console.log('★ペーストアップロード: selectedFolderId =', selectedFolderId);
     if (!pendingPasteFile) return;
     if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
     var name = pasteFileName.value.trim() || 'paste_image';
