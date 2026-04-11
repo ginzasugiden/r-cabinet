@@ -18,6 +18,10 @@
   var logoutBtn = document.getElementById('logoutBtn');
   var refreshFoldersBtn = document.getElementById('refreshFolders');
   var folderTree = document.getElementById('folderTree');
+  var uploadPlaceholder = document.getElementById('uploadPlaceholder');
+  var uploadAreaHeader = document.getElementById('uploadAreaHeader');
+  var uploadAreaContainer = document.getElementById('uploadAreaContainer');
+  var uploadFolderName = document.getElementById('uploadFolderName');
   var dropZone = document.getElementById('dropZone');
   var clickZone = document.getElementById('clickZone');
   var pasteZone = document.getElementById('pasteZone');
@@ -195,6 +199,9 @@
     sessionStorage.removeItem('token');
     sessionStorage.removeItem('shopName');
     selectedFolderId = null;
+    uploadPlaceholder.hidden = false;
+    uploadAreaHeader.hidden = true;
+    uploadAreaContainer.hidden = true;
     showLoginScreen();
   });
 
@@ -406,6 +413,12 @@
     }
     var active = folderTree.querySelector('[data-folder-id="' + folderId + '"]');
     if (active) active.classList.add('active');
+
+    // アップロードエリアの表示切替
+    uploadPlaceholder.hidden = true;
+    uploadAreaHeader.hidden = false;
+    uploadAreaContainer.hidden = false;
+    uploadFolderName.textContent = folderName;
 
     loadFolderFiles();
     renderQueue();
@@ -666,13 +679,11 @@
     e.preventDefault();
     dropZone.classList.remove('active');
     console.log('★ドロップ: selectedFolderId =', selectedFolderId);
-    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
     addFiles(e.dataTransfer.files);
   });
 
   // --- 中央: クリックして選択専用 ---
   clickZone.addEventListener('click', function () {
-    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
     fileInput.click();
   });
 
@@ -704,7 +715,7 @@
       }
     }
     if (!imageFile) return;
-    if (!selectedFolderId) { alert('フォルダを選択してください（selectedFolderId=' + selectedFolderId + '）'); return; }
+    if (!selectedFolderId) return;
 
     // 拡張子とデフォルトファイル名を生成
     var ext = imageFile.type.split('/')[1] || 'png';
@@ -736,7 +747,6 @@
     e.stopPropagation();
     console.log('★ペーストアップロード: selectedFolderId =', selectedFolderId);
     if (!pendingPasteFile) return;
-    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
     var name = pasteFileName.value.trim() || 'paste_image';
     var ext = pasteFileExt.textContent;
     var renamed = new File([pendingPasteFile], name + ext, { type: pendingPasteFile.type });

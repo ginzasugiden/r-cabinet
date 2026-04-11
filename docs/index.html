@@ -51,7 +51,13 @@
         <div class="main-content">
           <!-- 画像登録エリア -->
           <section class="section">
-            <div id="uploadAreaContainer">
+            <div id="uploadPlaceholder" class="upload-placeholder">
+              ← アップロード先のフォルダを選択してください
+            </div>
+            <div id="uploadAreaHeader" class="upload-area-header" hidden>
+              アップロード先: <span id="uploadFolderName"></span>
+            </div>
+            <div id="uploadAreaContainer" hidden>
               <div id="dropZone" class="upload-box">
                 <p>ここに画像を<br>ドラッグ&ドロップ</p>
               </div>

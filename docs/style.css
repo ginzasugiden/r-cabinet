@@ -230,6 +230,26 @@ button:disabled {
 }
 
 /* 画像登録エリア */
+.upload-placeholder {
+  text-align: center;
+  color: #aaa;
+  font-size: 18px;
+  padding: 40px 20px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+}
+
+.upload-area-header {
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.upload-area-header span {
+  color: #bf0000;
+}
+
 #uploadAreaContainer {
   display: flex;
   gap: 12px;
