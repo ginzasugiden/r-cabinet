@@ -268,15 +268,20 @@ button:disabled {
   border-style: solid;
 }
 
-#pasteZone.has-preview {
+#pasteZone {
   flex-direction: column;
+  cursor: pointer;
+}
+
+#pasteZone.has-preview {
   padding: 12px;
 }
 
-.upload-box p {
+.upload-box > p {
   pointer-events: none;
   margin: 0;
   line-height: 1.5;
+  white-space: nowrap;
 }
 
 /* ペーストプレビュー */

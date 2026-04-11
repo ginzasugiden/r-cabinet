@@ -395,6 +395,7 @@
   function selectFolder(folderId, folderName) {
     selectedFolderId = folderId;
     selectedFolderName = folderName;
+    console.log('フォルダ選択: folderId =', folderId);
     currentPage = 1;
     allFilesCache = null;
     allFilesCacheFolderId = null;
@@ -732,7 +733,9 @@
 
   pasteUploadBtn.addEventListener('click', function (e) {
     e.stopPropagation();
+    console.log('ペーストアップロード: folderId =', selectedFolderId);
     if (!pendingPasteFile) return;
+    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
     var name = pasteFileName.value.trim() || 'paste_image';
     var ext = pasteFileExt.textContent;
     var renamed = new File([pendingPasteFile], name + ext, { type: pendingPasteFile.type });
