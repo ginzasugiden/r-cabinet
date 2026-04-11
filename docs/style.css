@@ -299,6 +299,13 @@ button:disabled {
 #uploadAreaContainer {
   display: flex;
   gap: 12px;
+  transition: opacity 0.3s;
+}
+
+#uploadAreaContainer.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+  cursor: not-allowed;
 }
 
 .upload-box {

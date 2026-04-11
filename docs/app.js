@@ -201,7 +201,7 @@
     selectedFolderId = null;
     uploadPlaceholder.hidden = false;
     uploadAreaHeader.hidden = true;
-    uploadAreaContainer.hidden = true;
+    uploadAreaContainer.classList.add('disabled');
     showLoginScreen();
   });
 
@@ -417,7 +417,7 @@
     // アップロードエリアの表示切替
     uploadPlaceholder.hidden = true;
     uploadAreaHeader.hidden = false;
-    uploadAreaContainer.hidden = false;
+    uploadAreaContainer.classList.remove('disabled');
     uploadFolderName.textContent = folderName;
 
     loadFolderFiles();
