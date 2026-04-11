@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>R-Cabinet アップローダー</title>
+  <title>蔵画番侍</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>R-Cabinet アップローダー</h1>
+    <header class="app-header">
+      <h1>蔵画番侍</h1>
+      <p class="app-subtitle">楽天キャビネット画像管理ツール</p>
+    </header>
 
     <!-- ログイン画面 -->
     <div id="loginScreen">
@@ -52,21 +58,21 @@
           <!-- 画像登録エリア -->
           <section class="section">
             <div id="uploadPlaceholder" class="upload-placeholder">
-              ← アップロード先のフォルダを選択してください
+              <span class="arrow-icon">←</span> アップロード先のフォルダを選択してください
             </div>
             <div id="uploadAreaHeader" class="upload-area-header" hidden>
               アップロード先: <span id="uploadFolderName"></span>
             </div>
             <div id="uploadAreaContainer" hidden>
               <div id="dropZone" class="upload-box">
-                <p>ここに画像を<br>ドラッグ&ドロップ</p>
+                <p><span class="upload-icon">📥</span><br>ここに画像を<br>ドラッグ&ドロップ</p>
               </div>
               <div id="clickZone" class="upload-box">
-                <p>クリックして<br>ファイルを選択</p>
+                <p><span class="upload-icon">📁</span><br>クリックして<br>ファイルを選択</p>
                 <input type="file" id="fileInput" multiple accept="image/*" hidden>
               </div>
               <div id="pasteZone" class="upload-box" tabindex="0">
-                <p class="paste-hint">クリックしてから<br>Ctrl+Vで貼り付け</p>
+                <p class="paste-hint"><span class="upload-icon">📋</span><br>クリックしてから<br>Ctrl+Vで貼り付け</p>
                 <div id="pastePreview" hidden>
                   <img id="pastePreviewImg" src="" alt="preview">
                   <div class="paste-filename">

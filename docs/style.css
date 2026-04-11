@@ -6,21 +6,38 @@
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #f5f5f5;
+  background: #f5f0e8;
   color: #333;
   line-height: 1.6;
 }
 
 .container {
   max-width: 1400px;
-  margin: 20px auto;
-  padding: 0 16px;
+  margin: 0 auto;
+  padding: 0 16px 20px;
 }
 
-h1 {
+/* ヘッダー */
+.app-header {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  color: #fff;
   text-align: center;
-  margin-bottom: 20px;
-  color: #bf0000;
+  padding: 20px 16px 16px;
+  margin: 0 -16px 20px;
+}
+
+.app-header h1 {
+  font-family: "Noto Serif JP", serif;
+  font-size: 2rem;
+  color: #fff;
+  margin-bottom: 4px;
+  letter-spacing: 0.1em;
+}
+
+.app-subtitle {
+  font-size: 0.85rem;
+  color: #c9a94e;
+  letter-spacing: 0.05em;
 }
 
 h2 {
@@ -34,7 +51,7 @@ h2 {
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 label {
@@ -66,22 +83,29 @@ select {
 
 button {
   padding: 8px 16px;
-  background: #bf0000;
+  background: #8b0000;
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
   white-space: nowrap;
+  transition: background 0.2s, transform 0.1s;
 }
 
 button:hover {
-  background: #a00;
+  background: #6b0000;
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(0);
 }
 
 button:disabled {
   background: #ccc;
   cursor: not-allowed;
+  transform: none;
 }
 
 /* ヘッダーバー */
@@ -93,7 +117,7 @@ button:disabled {
   border-radius: 8px;
   padding: 12px 16px;
   margin-bottom: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .header-bar span {
@@ -123,7 +147,7 @@ button:disabled {
   flex-shrink: 0;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
 
@@ -132,9 +156,18 @@ button:disabled {
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  border-bottom: 1px solid #eee;
+  background: #1a1a2e;
+  color: #fff;
   font-weight: bold;
   font-size: 0.9rem;
+}
+
+.sidebar-header .btn-small {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.sidebar-header .btn-small:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .folder-tree {
@@ -160,13 +193,14 @@ button:disabled {
 }
 
 .folder-item:hover {
-  background: #f5f5f5;
+  background: #f5f0e8;
 }
 
 .folder-item.active {
-  background: #fff5f5;
-  border-left-color: #bf0000;
+  background: #fdf6e3;
+  border-left-color: #c9a94e;
   font-weight: bold;
+  color: #5a4a1e;
 }
 
 .folder-toggle {
@@ -214,7 +248,7 @@ button:disabled {
   width: 36px;
   height: 36px;
   border: 4px solid #eee;
-  border-top-color: #bf0000;
+  border-top-color: #8b0000;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -232,11 +266,23 @@ button:disabled {
 /* 画像登録エリア */
 .upload-placeholder {
   text-align: center;
-  color: #aaa;
-  font-size: 18px;
+  font-size: 1.4rem;
+  color: #8b0000;
+  font-weight: bold;
   padding: 40px 20px;
-  border: 2px dashed #ddd;
+  border: 2px dashed #8b0000;
   border-radius: 8px;
+  background: #fff;
+}
+
+.upload-placeholder .arrow-icon {
+  display: inline-block;
+  animation: arrowBounce 1s ease-in-out infinite;
+}
+
+@keyframes arrowBounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-10px); }
 }
 
 .upload-area-header {
@@ -247,7 +293,7 @@ button:disabled {
 }
 
 .upload-area-header span {
-  color: #bf0000;
+  color: #8b0000;
 }
 
 #uploadAreaContainer {
@@ -271,12 +317,20 @@ button:disabled {
 }
 
 .upload-box:hover {
-  background: #fafafa;
+  background: #fdf6e3;
+  border-color: #c9a94e;
 }
 
 .upload-box.active {
-  border-color: #bf0000;
+  border-color: #8b0000;
   background: #fff5f5;
+}
+
+.upload-icon {
+  font-size: 1.6rem;
+  display: block;
+  margin-bottom: 4px;
+  pointer-events: none;
 }
 
 #clickZone {
@@ -284,7 +338,7 @@ button:disabled {
 }
 
 #pasteZone:focus {
-  border-color: #bf0000;
+  border-color: #8b0000;
   border-style: solid;
 }
 
@@ -357,12 +411,12 @@ button:disabled {
 }
 
 #pasteUploadBtn {
-  background: #bf0000;
+  background: #8b0000;
   color: #fff;
 }
 
 #pasteUploadBtn:hover {
-  background: #a00;
+  background: #6b0000;
 }
 
 #pasteCancelBtn {
@@ -463,7 +517,7 @@ button:disabled {
 #progressFill {
   height: 100%;
   width: 0%;
-  background: #bf0000;
+  background: #8b0000;
   transition: width 0.3s;
 }
 
@@ -538,9 +592,9 @@ button:disabled {
 }
 
 .page-btn.active {
-  background: #bf0000;
+  background: #c9a94e;
   color: #fff;
-  border-color: #bf0000;
+  border-color: #c9a94e;
 }
 
 .page-btn:disabled {
@@ -571,8 +625,8 @@ button:disabled {
 }
 
 .existing-thumb.selected {
-  border-color: #bf0000;
-  box-shadow: 0 0 0 2px rgba(191, 0, 0, 0.3);
+  border-color: #c9a94e;
+  box-shadow: 0 0 0 2px rgba(201, 169, 78, 0.3);
 }
 
 /* 右サイド画像詳細パネル */
@@ -581,7 +635,7 @@ button:disabled {
   flex-shrink: 0;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   overflow: hidden;
   align-self: flex-start;
   position: sticky;
@@ -655,7 +709,7 @@ button:disabled {
   bottom: 24px;
   left: 50%;
   transform: translateX(-50%) translateY(80px);
-  background: #333;
+  background: #1a1a2e;
   color: #fff;
   padding: 10px 24px;
   border-radius: 6px;
