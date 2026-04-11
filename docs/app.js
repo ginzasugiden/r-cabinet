@@ -674,6 +674,44 @@
     fileInput.value = '';
   });
 
+  // --- ペースト（Ctrl+V）アップロード ---
+  document.addEventListener('paste', function (e) {
+    var items = e.clipboardData && e.clipboardData.items;
+    if (!items) return;
+    var imageFiles = [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].type.startsWith('image/')) {
+        var file = items[i].getAsFile();
+        if (file) {
+          // タイムスタンプ付きファイル名を生成
+          var now = new Date();
+          var ts = now.getFullYear()
+            + ('0' + (now.getMonth() + 1)).slice(-2)
+            + ('0' + now.getDate()).slice(-2)
+            + '_'
+            + ('0' + now.getHours()).slice(-2)
+            + ('0' + now.getMinutes()).slice(-2)
+            + ('0' + now.getSeconds()).slice(-2);
+          var ext = file.type.split('/')[1] || 'png';
+          if (ext === 'jpeg') ext = 'jpg';
+          var renamed = new File([file], 'paste_' + ts + '.' + ext, { type: file.type });
+          imageFiles.push(renamed);
+        }
+      }
+    }
+    if (imageFiles.length === 0) return;
+    if (!selectedFolderId) {
+      alert('フォルダを選択してください');
+      return;
+    }
+    // 視覚的フィードバック
+    dropZone.classList.add('dragover');
+    setTimeout(function () {
+      dropZone.classList.remove('dragover');
+    }, 300);
+    addFiles(imageFiles);
+  });
+
   function addFiles(fileList) {
     for (var i = 0; i < fileList.length; i++) {
       var file = fileList[i];
