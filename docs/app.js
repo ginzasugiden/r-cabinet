@@ -19,6 +19,8 @@
   var refreshFoldersBtn = document.getElementById('refreshFolders');
   var folderTree = document.getElementById('folderTree');
   var dropZone = document.getElementById('dropZone');
+  var clickZone = document.getElementById('clickZone');
+  var pasteZone = document.getElementById('pasteZone');
   var fileInput = document.getElementById('fileInput');
   var queueSection = document.getElementById('queueSection');
   var uploadQueue = document.getElementById('uploadQueue');
@@ -649,24 +651,27 @@
     }, 2000);
   }
 
-  // --- ドラッグ&ドロップ ---
-  dropZone.addEventListener('click', function () {
-    fileInput.click();
-  });
-
+  // --- 左: ドラッグ&ドロップ専用 ---
   dropZone.addEventListener('dragover', function (e) {
     e.preventDefault();
-    dropZone.classList.add('dragover');
+    dropZone.classList.add('active');
   });
 
   dropZone.addEventListener('dragleave', function () {
-    dropZone.classList.remove('dragover');
+    dropZone.classList.remove('active');
   });
 
   dropZone.addEventListener('drop', function (e) {
     e.preventDefault();
-    dropZone.classList.remove('dragover');
+    dropZone.classList.remove('active');
+    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
     addFiles(e.dataTransfer.files);
+  });
+
+  // --- 中央: クリックして選択専用 ---
+  clickZone.addEventListener('click', function () {
+    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
+    fileInput.click();
   });
 
   fileInput.addEventListener('change', function () {
@@ -674,8 +679,9 @@
     fileInput.value = '';
   });
 
-  // --- ペースト（Ctrl+V）アップロード ---
-  document.addEventListener('paste', function (e) {
+  // --- 右: ペースト専用 ---
+  pasteZone.addEventListener('paste', function (e) {
+    e.preventDefault();
     var items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
     var imageFiles = [];
@@ -683,7 +689,6 @@
       if (items[i].type.startsWith('image/')) {
         var file = items[i].getAsFile();
         if (file) {
-          // タイムスタンプ付きファイル名を生成
           var now = new Date();
           var ts = now.getFullYear()
             + ('0' + (now.getMonth() + 1)).slice(-2)
@@ -700,15 +705,13 @@
       }
     }
     if (imageFiles.length === 0) return;
-    if (!selectedFolderId) {
-      alert('フォルダを選択してください');
-      return;
-    }
-    // 視覚的フィードバック
-    dropZone.classList.add('dragover');
+    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
+    // 成功フィードバック
+    var origText = pasteZone.querySelector('p').innerHTML;
+    pasteZone.querySelector('p').textContent = '✓ 貼り付けました';
     setTimeout(function () {
-      dropZone.classList.remove('dragover');
-    }, 300);
+      pasteZone.querySelector('p').innerHTML = origText;
+    }, 1500);
     addFiles(imageFiles);
   });
 

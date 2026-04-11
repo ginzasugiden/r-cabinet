@@ -229,24 +229,49 @@ button:disabled {
   min-width: 0;
 }
 
-/* ドロップゾーン */
-#dropZone {
-  border: 2px dashed #ccc;
-  border-radius: 8px;
-  padding: 40px 20px;
-  text-align: center;
-  color: #999;
-  cursor: pointer;
-  transition: border-color 0.2s, background 0.2s;
+/* 画像登録エリア */
+#uploadAreaContainer {
+  display: flex;
+  gap: 12px;
 }
 
-#dropZone.dragover {
+.upload-box {
+  flex: 1;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 30px 12px;
+  text-align: center;
+  color: #999;
+  transition: border-color 0.2s, background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  outline: none;
+}
+
+.upload-box:hover {
+  background: #fafafa;
+}
+
+.upload-box.active {
   border-color: #bf0000;
   background: #fff5f5;
 }
 
-#dropZone p {
+#clickZone {
+  cursor: pointer;
+}
+
+#pasteZone:focus {
+  border-color: #bf0000;
+  border-style: solid;
+}
+
+.upload-box p {
   pointer-events: none;
+  margin: 0;
+  line-height: 1.5;
 }
 
 /* アップロードキュー */

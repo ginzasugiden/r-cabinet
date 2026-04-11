@@ -49,11 +49,19 @@
 
         <!-- 右メインエリア -->
         <div class="main-content">
-          <!-- ドロップゾーン -->
+          <!-- 画像登録エリア -->
           <section class="section">
-            <div id="dropZone">
-              <p>ここに画像をドラッグ&ドロップ<br>またはクリックして選択、またはCtrl+Vで貼り付け</p>
-              <input type="file" id="fileInput" multiple accept="image/*" hidden>
+            <div id="uploadAreaContainer">
+              <div id="dropZone" class="upload-box">
+                <p>ここに画像を<br>ドラッグ&ドロップ</p>
+              </div>
+              <div id="clickZone" class="upload-box">
+                <p>クリックして<br>ファイルを選択</p>
+                <input type="file" id="fileInput" multiple accept="image/*" hidden>
+              </div>
+              <div id="pasteZone" class="upload-box" tabindex="0">
+                <p>クリックしてから<br>Ctrl+Vで貼り付け</p>
+              </div>
             </div>
           </section>
 
