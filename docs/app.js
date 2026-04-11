@@ -395,7 +395,7 @@
   function selectFolder(folderId, folderName) {
     selectedFolderId = folderId;
     selectedFolderName = folderName;
-    console.log('フォルダ選択: folderId =', folderId);
+    console.log('フォルダ選択: folderId =', folderId, 'typeof:', typeof folderId, 'folderName:', folderName);
     currentPage = 1;
     allFilesCache = null;
     allFilesCacheFolderId = null;
@@ -692,7 +692,7 @@
 
   pasteZone.addEventListener('paste', function (e) {
     e.preventDefault();
-    console.log('paste event fired, selectedFolderId:', selectedFolderId);
+    console.log('paste event fired, selectedFolderId:', selectedFolderId, 'selectedFolderName:', selectedFolderName, 'typeof:', typeof selectedFolderId);
     var items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
     var imageFile = null;
@@ -703,7 +703,7 @@
       }
     }
     if (!imageFile) return;
-    if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
+    if (!selectedFolderId) { alert('フォルダを選択してください（selectedFolderId=' + selectedFolderId + '）'); return; }
 
     // 拡張子とデフォルトファイル名を生成
     var ext = imageFile.type.split('/')[1] || 'png';
