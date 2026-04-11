@@ -680,40 +680,79 @@
   });
 
   // --- 右: ペースト専用 ---
+  var pastePreview = document.getElementById('pastePreview');
+  var pastePreviewImg = document.getElementById('pastePreviewImg');
+  var pasteFileName = document.getElementById('pasteFileName');
+  var pasteFileExt = document.getElementById('pasteFileExt');
+  var pasteUploadBtn = document.getElementById('pasteUploadBtn');
+  var pasteCancelBtn = document.getElementById('pasteCancelBtn');
+  var pasteHint = pasteZone.querySelector('.paste-hint');
+  var pendingPasteFile = null;
+
   pasteZone.addEventListener('paste', function (e) {
     e.preventDefault();
+    console.log('paste event fired, selectedFolderId:', selectedFolderId);
     var items = e.clipboardData && e.clipboardData.items;
     if (!items) return;
-    var imageFiles = [];
+    var imageFile = null;
     for (var i = 0; i < items.length; i++) {
       if (items[i].type.startsWith('image/')) {
-        var file = items[i].getAsFile();
-        if (file) {
-          var now = new Date();
-          var ts = now.getFullYear()
-            + ('0' + (now.getMonth() + 1)).slice(-2)
-            + ('0' + now.getDate()).slice(-2)
-            + '_'
-            + ('0' + now.getHours()).slice(-2)
-            + ('0' + now.getMinutes()).slice(-2)
-            + ('0' + now.getSeconds()).slice(-2);
-          var ext = file.type.split('/')[1] || 'png';
-          if (ext === 'jpeg') ext = 'jpg';
-          var renamed = new File([file], 'paste_' + ts + '.' + ext, { type: file.type });
-          imageFiles.push(renamed);
-        }
+        imageFile = items[i].getAsFile();
+        if (imageFile) break;
       }
     }
-    if (imageFiles.length === 0) return;
+    if (!imageFile) return;
     if (!selectedFolderId) { alert('フォルダを選択してください'); return; }
-    // 成功フィードバック
-    var origText = pasteZone.querySelector('p').innerHTML;
-    pasteZone.querySelector('p').textContent = '✓ 貼り付けました';
-    setTimeout(function () {
-      pasteZone.querySelector('p').innerHTML = origText;
-    }, 1500);
-    addFiles(imageFiles);
+
+    // 拡張子とデフォルトファイル名を生成
+    var ext = imageFile.type.split('/')[1] || 'png';
+    if (ext === 'jpeg') ext = 'jpg';
+    var now = new Date();
+    var ts = now.getFullYear()
+      + ('0' + (now.getMonth() + 1)).slice(-2)
+      + ('0' + now.getDate()).slice(-2)
+      + ('0' + now.getHours()).slice(-2)
+      + ('0' + now.getMinutes()).slice(-2)
+      + ('0' + now.getSeconds()).slice(-2);
+    var defaultName = 'paste_' + ts;
+
+    // プレビュー表示
+    pendingPasteFile = imageFile;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      pastePreviewImg.src = ev.target.result;
+    };
+    reader.readAsDataURL(imageFile);
+    pasteFileName.value = defaultName;
+    pasteFileExt.textContent = '.' + ext;
+    pasteHint.hidden = true;
+    pastePreview.hidden = false;
+    pasteZone.classList.add('has-preview');
   });
+
+  pasteUploadBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    if (!pendingPasteFile) return;
+    var name = pasteFileName.value.trim() || 'paste_image';
+    var ext = pasteFileExt.textContent;
+    var renamed = new File([pendingPasteFile], name + ext, { type: pendingPasteFile.type });
+    addFiles([renamed]);
+    clearPastePreview();
+  });
+
+  pasteCancelBtn.addEventListener('click', function (e) {
+    e.stopPropagation();
+    clearPastePreview();
+  });
+
+  function clearPastePreview() {
+    pendingPasteFile = null;
+    pastePreviewImg.src = '';
+    pasteFileName.value = '';
+    pastePreview.hidden = true;
+    pasteHint.hidden = false;
+    pasteZone.classList.remove('has-preview');
+  }
 
   function addFiles(fileList) {
     for (var i = 0; i < fileList.length; i++) {

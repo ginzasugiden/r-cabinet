@@ -268,10 +268,85 @@ button:disabled {
   border-style: solid;
 }
 
+#pasteZone.has-preview {
+  flex-direction: column;
+  padding: 12px;
+}
+
 .upload-box p {
   pointer-events: none;
   margin: 0;
   line-height: 1.5;
+}
+
+/* ペーストプレビュー */
+#pastePreview {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+#pastePreviewImg {
+  max-width: 100%;
+  max-height: 120px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.paste-filename {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+}
+
+.paste-filename input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.paste-filename span {
+  font-size: 12px;
+  color: #666;
+  white-space: nowrap;
+}
+
+.paste-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.paste-actions button {
+  padding: 4px 14px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+#pasteUploadBtn {
+  background: #bf0000;
+  color: #fff;
+}
+
+#pasteUploadBtn:hover {
+  background: #a00;
+}
+
+#pasteCancelBtn {
+  background: #e0e0e0;
+  color: #333;
+}
+
+#pasteCancelBtn:hover {
+  background: #ccc;
 }
 
 /* アップロードキュー */
